@@ -1,0 +1,14 @@
+{
+  "name": "calendar-notes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun build main.ts --outfile main.js --format cjs --target browser --external obsidian",
+    "check": "tsc --noEmit -p .",
+    "install-vault": "bun run build && mkdir -p ~/Notes/.obsidian/plugins/calendar-notes && cp main.js manifest.json ~/Notes/.obsidian/plugins/calendar-notes/"
+  },
+  "devDependencies": {
+    "obsidian": "^1.14.4",
+    "typescript": "^7.0.2"
+  }
+}
