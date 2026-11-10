@@ -1,5 +1,15 @@
 import type { Moment } from "moment";
-import { App, moment, normalizePath, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import {
+  AbstractInputSuggest,
+  App,
+  moment,
+  normalizePath,
+  Notice,
+  Plugin,
+  PluginSettingTab,
+  Setting,
+  TFolder,
+} from "obsidian";
 
 // Obsidian's typings export moment as a namespace; at runtime it is the moment function.
 const today = moment as unknown as () => Moment;
@@ -11,11 +21,17 @@ type Key = "week" | "quarter" | "year";
 
 interface Settings {
   folder: string;
+  formats: Record<Key, string>;
   templates: Record<Key, string>;
 }
 
 const DEFAULTS: Settings = {
   folder: "Calendar",
+  formats: {
+    week: "GGGG-[W]WW",
+    quarter: "YYYY-[Q]Q",
+    year: "YYYY",
+  },
   templates: {
     week: "Templates/Year-Week template.md",
     quarter: "Templates/Year-Quarter template.md",
@@ -23,10 +39,10 @@ const DEFAULTS: Settings = {
   },
 };
 
-const PERIODS: { key: Key; name: string; unit: Unit; format: string }[] = [
-  { key: "week", name: "week", unit: "isoWeek", format: "GGGG-[W]WW" },
-  { key: "quarter", name: "quarter", unit: "quarter", format: "YYYY-[Q]Q" },
-  { key: "year", name: "year", unit: "year", format: "YYYY" },
+const PERIODS: { key: Key; name: string; unit: Unit }[] = [
+  { key: "week", name: "Week", unit: "isoWeek" },
+  { key: "quarter", name: "Quarter", unit: "quarter" },
+  { key: "year", name: "Year", unit: "year" },
 ];
 
 export default class Zhami extends Plugin {
@@ -36,13 +52,14 @@ export default class Zhami extends Plugin {
     const saved = (await this.loadData()) as Partial<Settings> | null;
     this.settings = {
       folder: saved?.folder ?? DEFAULTS.folder,
+      formats: { ...DEFAULTS.formats, ...saved?.formats },
       templates: { ...DEFAULTS.templates, ...saved?.templates },
     };
 
     for (const period of PERIODS) {
       this.addCommand({
         id: `open-${period.key}`,
-        name: `Open this ${period.name}`,
+        name: `Open this ${period.name.toLowerCase()}`,
         callback: () => this.open(period),
       });
     }
@@ -52,20 +69,60 @@ export default class Zhami extends Plugin {
   async open(period: (typeof PERIODS)[number]) {
     const { vault, workspace } = this.app;
     const now = today();
-    const title = now.format(period.format);
-    const folder = normalizePath(this.settings.folder || "/");
-    const path = normalizePath(`${folder}/${title}.md`);
+    const title = now.format(this.settings.formats[period.key] || DEFAULTS.formats[period.key]);
+    const path = normalizePath(`${this.settings.folder || "/"}/${title}.md`);
 
     let file = vault.getFileByPath(path);
     if (!file) {
-      if (folder !== "/" && !vault.getFolderByPath(folder)) await vault.createFolder(folder);
+      await this.ensureFolder(path.split("/").slice(0, -1).join("/"));
       const templatePath = this.settings.templates[period.key];
       const template = templatePath ? vault.getFileByPath(normalizePath(templatePath)) : null;
       if (templatePath && !template) new Notice(`Zhami: template not found: ${templatePath}`);
-      const text = template ? fill(await vault.read(template), title, now, period.unit) : "";
+      const text = template ? fill(await vault.read(template), title.split("/").pop()!, now, period.unit) : "";
       file = await vault.create(path, text);
     }
     await workspace.getLeaf(false).openFile(file);
+  }
+
+  // A format with slashes, like YYYY/[W]WW, puts notes in subfolders.
+  async ensureFolder(path: string) {
+    let current = "";
+    for (const part of path.split("/").filter(Boolean)) {
+      current = current ? `${current}/${part}` : part;
+      if (!this.app.vault.getFolderByPath(current)) await this.app.vault.createFolder(current);
+    }
+  }
+}
+
+class PathSuggest extends AbstractInputSuggest<string> {
+  constructor(
+    app: App,
+    private input: HTMLInputElement,
+    private kind: "folder" | "note",
+  ) {
+    super(app, input);
+  }
+
+  getSuggestions(query: string) {
+    const q = query.toLowerCase();
+    const paths =
+      this.kind === "folder"
+        ? this.app.vault
+            .getAllLoadedFiles()
+            .filter((f) => f instanceof TFolder && !f.isRoot())
+            .map((f) => f.path)
+        : this.app.vault.getMarkdownFiles().map((f) => f.path);
+    return paths.filter((p) => p.toLowerCase().includes(q)).sort();
+  }
+
+  renderSuggestion(path: string, el: HTMLElement) {
+    el.setText(path);
+  }
+
+  selectSuggestion(path: string) {
+    this.setValue(path);
+    this.input.dispatchEvent(new Event("input"));
+    this.close();
   }
 }
 
@@ -85,30 +142,52 @@ class ZhamiSettings extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Folder")
-      .setDesc("Where new notes are created.")
-      .addText((text) =>
-        text
+      .setDesc("New notes go here.")
+      .addSearch((search) => {
+        new PathSuggest(this.app, search.inputEl, "folder");
+        search
           .setPlaceholder(DEFAULTS.folder)
           .setValue(settings.folder)
           .onChange((value) => {
             settings.folder = value.trim();
             void save();
+          });
+      });
+
+    for (const period of PERIODS) {
+      new Setting(containerEl).setName(period.name).setHeading();
+
+      const format = new Setting(containerEl).setName("Name format");
+      const sample = createSpan({ cls: "u-pop" });
+      format.descEl.append("Your current syntax looks like this: ", sample, ". ");
+      format.descEl.createEl("a", {
+        text: "Format reference",
+        href: "https://momentjs.com/docs/#/displaying/format/",
+      });
+      format.addMomentFormat((field) =>
+        field
+          .setDefaultFormat(DEFAULTS.formats[period.key])
+          .setValue(settings.formats[period.key])
+          .setSampleEl(sample)
+          .onChange((value) => {
+            settings.formats[period.key] = value.trim();
+            void save();
           }),
       );
 
-    for (const period of PERIODS) {
       new Setting(containerEl)
-        .setName(`${period.name[0].toUpperCase()}${period.name.slice(1)} template`)
-        .setDesc("Path to the template file. Leave empty for a blank note.")
-        .addText((text) =>
-          text
+        .setName("Template")
+        .setDesc("Leave empty for a blank note.")
+        .addSearch((search) => {
+          new PathSuggest(this.app, search.inputEl, "note");
+          search
             .setPlaceholder(DEFAULTS.templates[period.key])
             .setValue(settings.templates[period.key])
             .onChange((value) => {
               settings.templates[period.key] = value.trim();
               void save();
-            }),
-        );
+            });
+        });
     }
   }
 }
