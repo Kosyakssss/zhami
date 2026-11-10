@@ -26,16 +26,16 @@ interface Settings {
 }
 
 const DEFAULTS: Settings = {
-  folder: "Calendar",
+  folder: "",
   formats: {
     week: "GGGG-[W]WW",
     quarter: "YYYY-[Q]Q",
     year: "YYYY",
   },
   templates: {
-    week: "Templates/Year-Week template.md",
-    quarter: "Templates/Year-Quarter template.md",
-    year: "Templates/Year template.md",
+    week: "",
+    quarter: "",
+    year: "",
   },
 };
 
@@ -76,7 +76,7 @@ export default class Zhami extends Plugin {
     if (!file) {
       await this.ensureFolder(path.split("/").slice(0, -1).join("/"));
       const templatePath = this.settings.templates[period.key];
-      const template = templatePath ? vault.getFileByPath(normalizePath(templatePath)) : null;
+      const template = templatePath ? vault.getFileByPath(normalizePath(templatePath.replace(/(\.md)?$/, ".md"))) : null;
       if (templatePath && !template) new Notice(`Zhami: template not found: ${templatePath}`);
       const text = template ? fill(await vault.read(template), title.split("/").pop()!, now, period.unit) : "";
       file = await vault.create(path, text);
@@ -146,7 +146,7 @@ class ZhamiSettings extends PluginSettingTab {
       .addSearch((search) => {
         new PathSuggest(this.app, search.inputEl, "folder");
         search
-          .setPlaceholder(DEFAULTS.folder)
+          .setPlaceholder("Vault root")
           .setValue(settings.folder)
           .onChange((value) => {
             settings.folder = value.trim();
@@ -181,7 +181,7 @@ class ZhamiSettings extends PluginSettingTab {
         .addSearch((search) => {
           new PathSuggest(this.app, search.inputEl, "note");
           search
-            .setPlaceholder(DEFAULTS.templates[period.key])
+            .setPlaceholder("Example: Templates/Week")
             .setValue(settings.templates[period.key])
             .onChange((value) => {
               settings.templates[period.key] = value.trim();
