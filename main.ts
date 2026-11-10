@@ -1,68 +1,115 @@
 import type { Moment } from "moment";
-import { moment, normalizePath, Notice, Plugin } from "obsidian";
+import { App, moment, normalizePath, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 
 // Obsidian's typings export moment as a namespace; at runtime it is the moment function.
 const today = moment as unknown as () => Moment;
 
-const FOLDER = "Calendar";
 const DAY = "YYYY-MM-DD";
 
 type Unit = "isoWeek" | "quarter" | "year";
+type Key = "week" | "quarter" | "year";
 
-interface Period {
-  id: string;
-  name: string;
-  unit: Unit;
-  format: string;
-  template: string;
+interface Settings {
+  folder: string;
+  templates: Record<Key, string>;
 }
 
-const PERIODS: Period[] = [
-  {
-    id: "open-week",
-    name: "Open this week",
-    unit: "isoWeek",
-    format: "GGGG-[W]WW",
-    template: "Templates/Year-Week template.md",
+const DEFAULTS: Settings = {
+  folder: "Calendar",
+  templates: {
+    week: "Templates/Year-Week template.md",
+    quarter: "Templates/Year-Quarter template.md",
+    year: "Templates/Year template.md",
   },
-  {
-    id: "open-quarter",
-    name: "Open this quarter",
-    unit: "quarter",
-    format: "YYYY-[Q]Q",
-    template: "Templates/Year-Quarter template.md",
-  },
-  {
-    id: "open-year",
-    name: "Open this year",
-    unit: "year",
-    format: "YYYY",
-    template: "Templates/Year template.md",
-  },
+};
+
+const PERIODS: { key: Key; name: string; unit: Unit; format: string }[] = [
+  { key: "week", name: "week", unit: "isoWeek", format: "GGGG-[W]WW" },
+  { key: "quarter", name: "quarter", unit: "quarter", format: "YYYY-[Q]Q" },
+  { key: "year", name: "year", unit: "year", format: "YYYY" },
 ];
 
 export default class Zhami extends Plugin {
-  onload() {
+  settings: Settings = structuredClone(DEFAULTS);
+
+  async onload() {
+    const saved = (await this.loadData()) as Partial<Settings> | null;
+    this.settings = {
+      folder: saved?.folder ?? DEFAULTS.folder,
+      templates: { ...DEFAULTS.templates, ...saved?.templates },
+    };
+
     for (const period of PERIODS) {
-      this.addCommand({ id: period.id, name: period.name, callback: () => this.open(period) });
+      this.addCommand({
+        id: `open-${period.key}`,
+        name: `Open this ${period.name}`,
+        callback: () => this.open(period),
+      });
     }
+    this.addSettingTab(new ZhamiSettings(this.app, this));
   }
 
-  async open(period: Period) {
+  async open(period: (typeof PERIODS)[number]) {
     const { vault, workspace } = this.app;
     const now = today();
     const title = now.format(period.format);
-    const path = normalizePath(`${FOLDER}/${title}.md`);
+    const folder = normalizePath(this.settings.folder || "/");
+    const path = normalizePath(`${folder}/${title}.md`);
 
     let file = vault.getFileByPath(path);
     if (!file) {
-      if (!vault.getFolderByPath(FOLDER)) await vault.createFolder(FOLDER);
-      const template = vault.getFileByPath(period.template);
-      if (!template) new Notice(`Template not found: ${period.template}`);
+      if (folder !== "/" && !vault.getFolderByPath(folder)) await vault.createFolder(folder);
+      const templatePath = this.settings.templates[period.key];
+      const template = templatePath ? vault.getFileByPath(normalizePath(templatePath)) : null;
+      if (templatePath && !template) new Notice(`Zhami: template not found: ${templatePath}`);
       const text = template ? fill(await vault.read(template), title, now, period.unit) : "";
       file = await vault.create(path, text);
     }
     await workspace.getLeaf(false).openFile(file);
+  }
+}
+
+class ZhamiSettings extends PluginSettingTab {
+  constructor(
+    app: App,
+    private plugin: Zhami,
+  ) {
+    super(app, plugin);
+  }
+
+  display() {
+    const { containerEl } = this;
+    const { settings } = this.plugin;
+    const save = () => this.plugin.saveData(settings);
+    containerEl.empty();
+
+    new Setting(containerEl)
+      .setName("Folder")
+      .setDesc("Where new notes are created.")
+      .addText((text) =>
+        text
+          .setPlaceholder(DEFAULTS.folder)
+          .setValue(settings.folder)
+          .onChange((value) => {
+            settings.folder = value.trim();
+            void save();
+          }),
+      );
+
+    for (const period of PERIODS) {
+      new Setting(containerEl)
+        .setName(`${period.name[0].toUpperCase()}${period.name.slice(1)} template`)
+        .setDesc("Path to the template file. Leave empty for a blank note.")
+        .addText((text) =>
+          text
+            .setPlaceholder(DEFAULTS.templates[period.key])
+            .setValue(settings.templates[period.key])
+            .onChange((value) => {
+              settings.templates[period.key] = value.trim();
+              void save();
+            }),
+        );
+    }
   }
 }
 
