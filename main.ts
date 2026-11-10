@@ -41,7 +41,7 @@ const PERIODS: Period[] = [
   },
 ];
 
-export default class CalendarNotes extends Plugin {
+export default class Zhami extends Plugin {
   onload() {
     for (const period of PERIODS) {
       this.addCommand({ id: period.id, name: period.name, callback: () => this.open(period) });

@@ -1,11 +1,11 @@
 {
-  "name": "calendar-notes",
+  "name": "zhami",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "bun build main.ts --outfile main.js --format cjs --target browser --external obsidian",
     "check": "tsc --noEmit -p .",
-    "install-vault": "bun run build && mkdir -p ~/Notes/.obsidian/plugins/calendar-notes && cp main.js manifest.json ~/Notes/.obsidian/plugins/calendar-notes/"
+    "install-vault": "bun run build && mkdir -p ~/Notes/.obsidian/plugins/zhami && cp main.js manifest.json ~/Notes/.obsidian/plugins/zhami/"
   },
   "devDependencies": {
     "obsidian": "^1.14.4",

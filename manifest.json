@@ -1,6 +1,6 @@
 {
-  "id": "calendar-notes",
-  "name": "Calendar notes",
+  "id": "zhami",
+  "name": "Zhami",
   "version": "0.1.0",
   "minAppVersion": "1.12.0",
   "description": "Open or create this week's, quarter's, or year's note.",
