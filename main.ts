@@ -1,6 +1,7 @@
 import type { Moment } from "moment";
 import {
   AbstractInputSuggest,
+  addIcon,
   App,
   moment,
   normalizePath,
@@ -15,6 +16,11 @@ import {
 const today = moment as unknown as () => Moment;
 
 const DAY = "YYYY-MM-DD";
+
+// ჟ, the first letter of ჟამი, drawn on Lucide's 24px grid. Stroke width
+// is left to Obsidian, so it matches the built-in icons. Also in icon.svg.
+const ICON = "zhami";
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v13a5 5 0 0 1-10 0"/><path d="M17 3 7 6"/><path d="M9.5 8.3c1.9.2 3 1 3 2 0 1.3-1.5 2.1-3.4 2.1-.9 0-1.6-.1-2.1-.3"/></svg>`;
 
 type Unit = "isoWeek" | "quarter" | "year";
 type Key = "week" | "quarter" | "year";
@@ -49,6 +55,7 @@ export default class Zhami extends Plugin {
   settings: Settings = structuredClone(DEFAULTS);
 
   async onload() {
+    addIcon(ICON, ICON_SVG);
     const saved = (await this.loadData()) as Partial<Settings> | null;
     this.settings = {
       folder: saved?.folder ?? DEFAULTS.folder,
@@ -60,6 +67,7 @@ export default class Zhami extends Plugin {
       this.addCommand({
         id: `open-${period.key}`,
         name: `Open this ${period.name.toLowerCase()}`,
+        icon: ICON,
         callback: () => this.open(period),
       });
     }
@@ -127,6 +135,8 @@ class PathSuggest extends AbstractInputSuggest<string> {
 }
 
 class ZhamiSettings extends PluginSettingTab {
+  icon = ICON;
+
   constructor(
     app: App,
     private plugin: Zhami,
