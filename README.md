@@ -14,14 +14,20 @@ Daily notes are left to Obsidian's core Daily notes plugin.
 | Open this quarter | `Calendar/2026-Q4.md` |
 | Open this year | `Calendar/2026.md` |
 
-Weeks are ISO weeks. They start on Monday, and a week belongs to the year that holds its Thursday, so 2026-12-31 is in `2026-W53`. File names sort in time order, and stay apart from daily notes (`2026-11-10.md`).
+With the default names, weeks are ISO weeks. They start on Monday, and a week belongs to the year that holds its Thursday, so 2026-12-31 is in `2026-W53`. File names sort in time order, and stay apart from daily notes (`2026-11-10.md`).
 
 Bind the commands to hotkeys in **Settings → Hotkeys**.
 
 ## Settings
 
 - **Folder:** where new notes go. Default: `Calendar`.
-- **Week, quarter, and year template:** a path to a note in your vault, such as `Templates/Year-Week template.md`. Leave it empty for a blank note.
+
+For each of week, quarter, and year:
+
+- **Name format:** how the note is named, in the same [moment.js format](https://momentjs.com/docs/#/displaying/format/) as Obsidian's core Daily notes. Defaults: `GGGG-[W]WW`, `YYYY-[Q]Q`, `YYYY`. Text in brackets is kept as written. A slash makes subfolders, so `YYYY/[W]WW` gives `Calendar/2026/W46.md`.
+- **Template:** a note in your vault, such as `Templates/Year-Week template.md`. Leave it empty for a blank note.
+
+Both the folder and template fields suggest paths as you type.
 
 ## Template variables
 
