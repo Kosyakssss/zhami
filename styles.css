@@ -1,0 +1,15 @@
+/* Tokens in a period's reference, and what each gives today. */
+.zhami-token {
+  font-family: var(--font-monospace);
+}
+
+.zhami-value {
+  color: var(--text-muted);
+}
+
+/* The list of renames. */
+.zhami-moves {
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  user-select: text;
+}
