@@ -13,7 +13,7 @@ import {
   type SettingDefinitionItem,
   type TFile,
 } from "obsidian";
-import { fill, render, tokens } from "./src/format";
+import { fill, reference, render } from "./src/format";
 import { moment, useMoment } from "./src/moment";
 import { GROUPS, PERIODS, type Context, type Hemisphere, type Instance, type Period } from "./src/periods";
 import { instances, plan } from "./src/rename";
@@ -267,11 +267,11 @@ class ZhamiSettings extends PluginSettingTab {
               const update = (format: string) => {
                 const instance = now();
                 if (!instance) {
-                  preview.setText("nowhere: today is outside this period's range");
+                  preview.setText("none, as today is outside this period's range");
                   return;
                 }
-                const { path, errors } = this.plugin.path(period, instance, format || period.format);
-                preview.setText(`${path}.md`);
+                const { text, errors } = render(format || period.format, period, instance);
+                preview.setText(text);
                 problem.setText(errors.join(". "));
               };
               setting.setDesc(
@@ -309,15 +309,23 @@ class ZhamiSettings extends PluginSettingTab {
         heading: "Examples",
         visible: on,
         items: period.examples.map((format) => ({
-          name: (() => {
+          name: format,
+          searchable: false,
+          render: (setting: Setting) => {
             const instance = now();
-            return instance ? render(format, period, instance).text : format;
-          })(),
-          desc: format,
-          action: () => {
-            settings.formats[period.key] = format === period.format ? "" : format;
-            void this.plugin.saveData(settings);
-            this.update();
+            setting.nameEl.addClass("zhami-token");
+            if (instance) setting.controlEl.createSpan({ cls: "zhami-value", text: render(format, period, instance).text });
+            const used = this.plugin.format(period) === format;
+            setting.addButton((button) =>
+              button
+                .setButtonText(used ? "In use" : "Use")
+                .setDisabled(used)
+                .onClick(() => {
+                  settings.formats[period.key] = format === period.format ? "" : format;
+                  void this.plugin.saveData(settings);
+                  this.update();
+                }),
+            );
           },
         })),
       },
@@ -326,11 +334,18 @@ class ZhamiSettings extends PluginSettingTab {
         heading: "Reference",
         visible: on,
         items: [
-          ...Object.entries(period.momentTokens ?? {}).map(([token, desc]) => this.token(token, desc, period, now)),
-          ...Object.entries(tokens(period)).map(([token, desc]) => this.token(`{{${token}}}`, desc, period, now)),
+          ...(now() ? reference(period, now()!) : []).map((row) => ({
+            name: row.token,
+            desc: row.desc,
+            searchable: false,
+            render: (setting: Setting) => {
+              setting.nameEl.addClass("zhami-token");
+              setting.controlEl.createSpan({ cls: "zhami-value", text: row.value });
+            },
+          })),
           {
             name: "Documentation",
-            desc: "This period's formats, tokens and sources, on GitHub.",
+            desc: "Every period's formats, tokens and sources, on GitHub.",
             action: () => window.open(`${DOCS}/periods.md#${anchor(period)}`),
           },
         ],
@@ -348,24 +363,6 @@ class ZhamiSettings extends PluginSettingTab {
         ],
       },
     ];
-  }
-
-  // A reference row: the token, what it means, and what it gives today.
-  token(token: string, desc: string, period: Period, now: () => Instance | undefined) {
-    return {
-      name: token,
-      desc,
-      searchable: false,
-      render: (setting: Setting) => {
-        setting.nameEl.addClass("zhami-token");
-        const instance = now();
-        if (!instance) return;
-        // A sample for tokens that take a format.
-        const sample = token.replace(":FORMAT", token.startsWith("{{years") ? ":YYYY-YY" : ":MMM D");
-        const value = /^\{\{/.test(token) ? render(sample, period, instance).text : instance.start.format(token);
-        setting.controlEl.createSpan({ cls: "zhami-value", text: value });
-      },
-    };
   }
 }
 

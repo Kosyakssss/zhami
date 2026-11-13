@@ -27,20 +27,20 @@ Each period's page has:
 - **Folder**, if its notes go somewhere else.
 - **Name format**, with today's note as you type.
 - **Template** for new notes.
-- **Examples**: select one to use it.
+- **Examples**, each with a button to use it.
 - **Reference**: every token the period understands, and what each gives today.
 - **Rename notes**, for notes named another way.
 
-Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Daily notes do. Where moment has no token, Zhami adds one in double braces:
+Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Daily notes do. Where moment has no token, Zhami adds one in double braces. On November 13, 2026:
 
-| Format                    | Gives                           |
-| ------------------------- | ------------------------------- |
-| `GGGG-[W]WW`              | `2026-W46`                      |
-| `GGGG-[F]{{PP}}`          | `2026-F23`                      |
-| `{{PPPP}} {{years}}`      | `Autumn 2026`, `Winter 2026-27` |
-| `{{PPP}}YY`               | `FW26`                          |
-| `{{PPPP}} {{PPPP:kanji}}` | `Rittō 立冬`                    |
-| `{{Po}} [century]`        | `21st century`                  |
+| Period         | Format                    | Gives          |
+| -------------- | ------------------------- | -------------- |
+| Week           | `GGGG-[W]WW`              | `2026-W46`     |
+| Fortnight      | `GGGG-[F]{{PP}}`          | `2026-F23`     |
+| Season         | `{{PPPP}} {{years}}`      | `Autumn 2026`  |
+| Fashion season | `{{PPP}}YY`               | `FW26`         |
+| Sekki          | `{{PPPP}} {{PPPP:kanji}}` | `Rittō 立冬`   |
+| Century        | `{{Po}} [century]`        | `21st century` |
 
 ## Documentation
 

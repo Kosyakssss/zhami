@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { fill } from "../src/format";
-import { at, moment } from "./setup";
+import { fill, reference, render } from "../src/format";
+import { PERIODS } from "../src/periods";
+import { at, moment, north } from "./setup";
 
 describe("name formats", () => {
   test("moment's tokens work as in Daily notes", () => {
@@ -65,5 +66,20 @@ describe("templates", () => {
   test("fill names in templates too", () => {
     const { instance } = at("sekki", "2026-11-13");
     expect(fill("{{PPPP}} ({{PPPP:kanji}}), sekki {{P}}", "x", moment(), instance)).toBe("Rittō (立冬), sekki 19");
+  });
+});
+
+describe("settings and docs", () => {
+  test("every period's examples and reference tokens work, through a whole year", () => {
+    for (const p of PERIODS) {
+      for (let m = moment("2026-01-01", "YYYY-MM-DD"); m.year() === 2026; m.add(5, "days")) {
+        const instance = p.at(m, north);
+        for (const format of p.examples) expect([p.key, render(format, p, instance).errors]).toEqual([p.key, []]);
+        for (const row of reference(p, instance)) {
+          expect([row.token, render(row.token, p, instance).errors]).toEqual([row.token, []]);
+          expect(row.value).not.toBe("");
+        }
+      }
+    }
   });
 });

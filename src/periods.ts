@@ -140,9 +140,9 @@ const season = (n: number, ctx: Context) => {
   return { PPPP: name, "PPPP:fall": name === "Autumn" ? "Fall" : name, PPP: name.slice(0, 3) };
 };
 const SEASON_LABELS = {
-  PPPP: "Its name: Spring, Summer, Autumn, Winter",
-  "PPPP:fall": "The same, with Fall for autumn",
-  PPP: "Short: Spr, Sum, Aut, Win",
+  PPPP: "Spring, Summer, Autumn or Winter",
+  "PPPP:fall": "Spring, Summer, Fall or Winter",
+  PPP: "Spr, Sum, Aut or Win",
 };
 
 // The Wheel of the Year: cross-quarter days on fixed dates, and the
@@ -183,10 +183,10 @@ export const PERIODS: Period[] = [
     format: "GGGG-[W]WW",
     examples: ["GGGG-[W]WW", "GGGG [week] W", "{{start:MMM D}}–{{end:D}}", "GGGG/[W]WW"],
     momentTokens: {
-      W: "Its number in the ISO year: 46",
-      WW: "The same, with a zero: 05",
-      Wo: "As an ordinal: 46th",
-      GGGG: "The ISO year it belongs to. Use it with weeks, not YYYY",
+      W: "Week of the ISO year, 1 to 53",
+      WW: "W with two digits",
+      Wo: "W as an ordinal",
+      GGGG: "ISO year. Use it with weeks instead of YYYY",
     },
     at: unit("isoWeek"),
   },
@@ -197,8 +197,8 @@ export const PERIODS: Period[] = [
     span: "Two ISO weeks: 1 and 2, 3 and 4, and so on",
     format: "GGGG-[F]{{PP}}",
     examples: ["GGGG-[F]{{PP}}", "GGGG [fortnight] {{P}}", "{{start:MMM D}}–{{end:MMM D}}"],
-    number: "Its number in the ISO year, 1 to 27. In a year with 53 weeks, the 27th is one week long",
-    momentTokens: { GGGG: "The ISO year it belongs to" },
+    number: "Fortnight of the ISO year, 1 to 27",
+    momentTokens: { GGGG: "ISO year" },
     at: (m) => {
       const n = Math.ceil(m.isoWeek() / 2);
       const first = m.clone().isoWeek(n * 2 - 1);
@@ -217,7 +217,7 @@ export const PERIODS: Period[] = [
     span: "A calendar month",
     format: "YYYY-MM",
     examples: ["YYYY-MM", "MMMM YYYY", "YYYY/MM MMMM"],
-    momentTokens: { M: "Its number: 11", MM: "With a zero: 05", MMM: "Short name: Nov", MMMM: "Name: November" },
+    momentTokens: { M: "Month of the year, 1 to 12", MM: "M with two digits", MMM: "Short name", MMMM: "Name" },
     at: unit("month"),
   },
   {
@@ -227,7 +227,7 @@ export const PERIODS: Period[] = [
     span: "Three calendar months, from January, April, July and October",
     format: "YYYY-[Q]Q",
     examples: ["YYYY-[Q]Q", "[Q]Q YYYY", "Qo [quarter] YYYY"],
-    momentTokens: { Q: "Its number: 4", Qo: "As an ordinal: 4th" },
+    momentTokens: { Q: "Quarter of the year, 1 to 4", Qo: "Q as an ordinal" },
     at: unit("quarter"),
   },
   {
@@ -237,7 +237,7 @@ export const PERIODS: Period[] = [
     span: "January to June, or July to December",
     format: "YYYY-[H]{{P}}",
     examples: ["YYYY-[H]{{P}}", "{{Po}} [half of] YYYY", "YYYY [H]{{P}}"],
-    number: "1 for January to June, 2 for July to December",
+    number: "Half of the year: 1 from January, 2 from July",
     at: (m) => {
       const start = m.clone().startOf("year").month(m.month() < 6 ? 0 : 6);
       return { start, end: start.clone().add(5, "months").endOf("month"), n: m.month() < 6 ? 1 : 2 };
@@ -250,7 +250,7 @@ export const PERIODS: Period[] = [
     span: "A calendar year",
     format: "YYYY",
     examples: ["YYYY", "[Year ]YYYY"],
-    momentTokens: { YYYY: "The year: 2026", YY: "Two digits: 26" },
+    momentTokens: { YYYY: "Year", YY: "Year with two digits" },
     at: unit("year"),
   },
   {
@@ -260,7 +260,7 @@ export const PERIODS: Period[] = [
     span: "Ten years, from a year ending in 0",
     format: "YYYY[s]",
     examples: ["YYYY[s]", "[The ]YY[s]", "{{years:YYYY-YYYY}}"],
-    momentTokens: { "YYYY[s]": "Its first year, with an s: 2020s", "YY[s]": "Two digits: 20s" },
+    momentTokens: { "YYYY[s]": "First year, with an s", "YY[s]": "First year with two digits, with an s" },
     at: years(10, false),
   },
   {
@@ -270,7 +270,7 @@ export const PERIODS: Period[] = [
     span: "A hundred years: the 21st runs from 2001 to 2100",
     format: "{{Po}} [century]",
     examples: ["{{Po}} [century]", "[Century ]{{P}}", "{{years:YYYY-YYYY}}"],
-    number: "21 for 2001 to 2100",
+    number: "Century, counted from year 1",
     at: years(100, true),
   },
   {
@@ -280,7 +280,7 @@ export const PERIODS: Period[] = [
     span: "A thousand years: the 3rd runs from 2001 to 3000",
     format: "{{Po}} [millennium]",
     examples: ["{{Po}} [millennium]", "[Millennium ]{{P}}"],
-    number: "3 for 2001 to 3000",
+    number: "Millennium, counted from year 1",
     at: years(1000, true),
   },
   {
@@ -290,7 +290,7 @@ export const PERIODS: Period[] = [
     span: "Three whole months: winter is December to February in the north",
     format: "{{PPPP}} {{years}}",
     examples: ["{{PPPP}} {{years}}", "{{PPPP}} {{years:YY-YY}}", "{{PPPP:fall}} {{years:YYYY-YYYY}}", "{{PPP}} YY"],
-    number: "1 to 4, from the season that starts in March",
+    number: "Season of the year, 1 to 4, from March",
     labels: SEASON_LABELS,
     at: marks((y, ctx) =>
       ["03-01", "06-01", "09-01", "12-01"].map((md, i) => ({ date: `${pad(y)}-${md}`, n: i + 1, labels: season(i + 1, ctx) })),
@@ -303,7 +303,7 @@ export const PERIODS: Period[] = [
     span: "From an equinox or solstice to the next",
     format: "{{PPPP}} {{years}}",
     examples: ["{{PPPP}} {{years}}", "{{PPPP}} {{years:YY-YY}}", "{{PPPP:fall}} {{years:YYYY-YYYY}}"],
-    number: "1 to 4, from the March equinox",
+    number: "Season of the year, 1 to 4, from the March equinox",
     labels: SEASON_LABELS,
     clock: "your time zone",
     at: marks((y, ctx) => sunSteps(y, 90, 0).map(({ at, index }) => ({ date: local(at), n: index + 1, labels: season(index + 1, ctx) }))),
@@ -316,8 +316,8 @@ export const PERIODS: Period[] = [
     span: "Eight festivals: the solstices, the equinoxes, and the days between",
     format: "{{PPPP}} {{years}}",
     examples: ["{{PPPP}} {{years}}", "YYYY {{PPPP}}", "{{PP}} {{PPPP}} YYYY"],
-    number: "1 to 8, from Samhain",
-    labels: { PPPP: "The festival: Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh, Mabon" },
+    number: "Festival of the year, 1 to 8, from Samhain",
+    labels: { PPPP: "Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh or Mabon" },
     clock: "your time zone, for the solstices and equinoxes",
     at: marks((y, ctx) => {
       const [equinox, solstice, autumn, winter] = sunSteps(y, 90, 0).map(({ at }) => local(at));
@@ -339,10 +339,10 @@ export const PERIODS: Period[] = [
     examples: ["{{PPP}}YY", "{{PPPP}} {{years}}", "{{PPP:autumn}}YY", "YYYY {{PPP}}"],
     number: "1 for spring-summer, 2 for fall-winter",
     labels: {
-      PPPP: "Its name: Spring-summer, Fall-winter",
-      "PPPP:autumn": "The same, with Autumn-winter",
-      PPP: "Short: SS, FW",
-      "PPP:autumn": "Short, with AW: SS, AW",
+      PPPP: "Spring-summer or Fall-winter",
+      "PPPP:autumn": "Spring-summer or Autumn-winter",
+      PPP: "SS or FW",
+      "PPP:autumn": "SS or AW",
     },
     dates: [
       { key: "spring-summer", name: "Spring-summer starts", default: "02-01" },
@@ -378,7 +378,7 @@ export const PERIODS: Period[] = [
     span: "Three months, from the start of the fiscal year",
     format: "[FY]{{fy:YYYY}} [Q]{{P}}",
     examples: ["[FY]{{fy:YYYY}} [Q]{{P}}", "[FY]{{fy:YY}}-[Q]{{P}}", "[FY]{{fy:YYYY-YY}} [Q]{{P}}"],
-    number: "1 to 4, from the start of the fiscal year",
+    number: "Quarter of the fiscal year, 1 to 4",
     dates: [{ key: "fiscal", name: "Fiscal year starts", default: "04-01" }],
     at: marks((y, ctx) => {
       const start = FISCAL(y, ctx);
@@ -403,8 +403,8 @@ export const PERIODS: Period[] = [
     span: "The 24 sekki (二十四節気), about 15 days each, from Risshun in early February",
     format: "{{PPPP}} YYYY",
     examples: ["{{PPPP}} YYYY", "YYYY {{PPPP:kanji}}", "{{PPPP:english}} YYYY", "YYYY-{{PP}} {{PPPP}}"],
-    number: "1 to 24, from Risshun",
-    labels: { PPPP: "Its name in romaji: Rittō", "PPPP:kanji": "In kanji: 立冬", "PPPP:english": "In English: Beginning of winter" },
+    number: "Sekki of the year, 1 to 24, from Risshun",
+    labels: { PPPP: "Name in romaji", "PPPP:kanji": "Name in kanji", "PPPP:english": "Name in English" },
     clock: "Japan time",
     at: sun(15, 315, zoned(9), (n) => {
       const s = SEKKI[n - 1]!;
@@ -418,13 +418,13 @@ export const PERIODS: Period[] = [
     span: "The 72 kō (七十二候), about 5 days each, three in every sekki",
     format: "{{PPPP:english}} YYYY",
     examples: ["{{PPPP:english}} YYYY", "YYYY-{{PP}} {{PPPP:kanji}}", "{{PPPP}} YYYY", "{{PPPP:sekki}} {{P}}"],
-    number: "1 to 72, from the first kō of Risshun",
+    number: "Kō of the year, 1 to 72, from Risshun",
     labels: {
-      PPPP: "Its name in romaji: Tsubaki hajimete hiraku",
-      "PPPP:kanji": "In kanji: 山茶始開",
-      "PPPP:kana": "In kana: つばきはじめてひらく",
-      "PPPP:english": "In English: Camellias bloom",
-      "PPPP:sekki": "The sekki it's in, in romaji: Rittō",
+      PPPP: "Name in romaji",
+      "PPPP:kanji": "Name in kanji",
+      "PPPP:kana": "Name in kana",
+      "PPPP:english": "Name in English",
+      "PPPP:sekki": "Its sekki, in romaji",
     },
     clock: "Japan time",
     at: sun(5, 315, zoned(9), (n) => {
@@ -445,12 +445,12 @@ export const PERIODS: Period[] = [
     span: "The 24 jiéqì (节气), about 15 days each, from Lìchūn in early February",
     format: "{{PPPP}} YYYY",
     examples: ["{{PPPP}} YYYY", "YYYY {{PPPP:hanzi}}", "{{PPPP:english}} YYYY"],
-    number: "1 to 24, from Lìchūn",
+    number: "Jiéqì of the year, 1 to 24, from Lìchūn",
     labels: {
-      PPPP: "Its name in pinyin: Lìdōng",
-      "PPPP:hanzi": "In simplified characters: 立冬",
-      "PPPP:traditional": "In traditional characters: 立冬",
-      "PPPP:english": "In English: Beginning of winter",
+      PPPP: "Name in pinyin",
+      "PPPP:hanzi": "Name in simplified characters",
+      "PPPP:traditional": "Name in traditional characters",
+      "PPPP:english": "Name in English",
     },
     clock: "China time (UTC+8)",
     at: sun(15, 315, zoned(8), (n) => {
@@ -465,12 +465,12 @@ export const PERIODS: Period[] = [
     span: "From one Lunar New Year to the next, 1901 to 2100",
     format: "{{PPPP:element}} {{PPPP}} YYYY",
     examples: ["{{PPPP:element}} {{PPPP}} YYYY", "[Year of the ]{{PPPP}} YYYY", "YYYY {{PPPP:ganzhi}}"],
-    number: "1 to 12, from the Rat",
+    number: "Animal of the cycle, 1 to 12, from the Rat",
     labels: {
-      PPPP: "The animal: Horse",
-      "PPPP:element": "The element: Fire",
-      "PPPP:hanzi": "The animal in characters: 马",
-      "PPPP:ganzhi": "The year's stem and branch: 丙午",
+      PPPP: "Animal",
+      "PPPP:element": "Wood, Fire, Earth, Metal or Water",
+      "PPPP:hanzi": "Animal in characters",
+      "PPPP:ganzhi": "Stem and branch of the year",
     },
     at: marks((y) => {
       const i = y - LUNAR_NEW_YEAR_FROM;
@@ -499,8 +499,8 @@ export const PERIODS: Period[] = [
     span: "The 24 jeolgi (절기), about 15 days each, from Ipchun in early February",
     format: "{{PPPP}} YYYY",
     examples: ["{{PPPP}} YYYY", "YYYY {{PPPP:hangul}}", "{{PPPP:english}} YYYY"],
-    number: "1 to 24, from Ipchun",
-    labels: { PPPP: "Its name, romanized: Ipdong", "PPPP:hangul": "In Hangul: 입동", "PPPP:english": "In English: Beginning of winter" },
+    number: "Jeolgi of the year, 1 to 24, from Ipchun",
+    labels: { PPPP: "Name, romanized", "PPPP:hangul": "Name in Hangul", "PPPP:english": "Name in English" },
     clock: "Korea time (UTC+9)",
     at: sun(15, 315, zoned(9), (n) => {
       const j = JEOLGI[n - 1]!;
@@ -514,12 +514,12 @@ export const PERIODS: Period[] = [
     span: "Six seasons of about two months, from Vasanta in mid-February. Śiśira starts at the winter solstice",
     format: "{{PPPP}} {{years}}",
     examples: ["{{PPPP}} {{years}}", "YYYY {{PPPP:devanagari}}", "{{PPPP:english}} {{years}}"],
-    number: "1 to 6, from Vasanta",
+    number: "Ṛtu of the year, 1 to 6, from Vasanta",
     labels: {
-      PPPP: "Its name: Vasanta, Grīṣma, Varṣā, Śarad, Hemanta, Śiśira",
-      "PPPP:plain": "Without diacritics: Vasanta, Grishma, Varsha, Sharad, Hemanta, Shishira",
-      "PPPP:devanagari": "In Devanagari: हेमन्त",
-      "PPPP:english": "In English: Pre-winter",
+      PPPP: "Name, with diacritics",
+      "PPPP:plain": "Name, without diacritics",
+      "PPPP:devanagari": "Name in Devanagari",
+      "PPPP:english": "Name in English",
     },
     clock: "India time (UTC+5:30)",
     at: sun(60, 330, zoned(5.5), (n) => {

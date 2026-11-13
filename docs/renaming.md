@@ -18,12 +18,12 @@ Renaming goes through Obsidian, so links to the notes update when Obsidian's **A
 
 A `*` in **Find** matches any text. A `*` in **Rename to** puts it back.
 
-| Find | Rename to | Note | Becomes |
-| --- | --- | --- | --- |
-| `GGGG-[W]WW` | `GGGG [week] W` | `2026-W46` | `2026 week 46` |
-| `GGGG-[W]WW *` | `GGGG/[W]WW *` | `2026-W45 trip to Kyoto` | `2026/W45 trip to Kyoto` |
-| `* GGGG-[W]WW` | `GGGG-[W]WW (*)` | `notes 2026-W46` | `2026-W46 (notes)` |
-| `{{PPPP}} {{years}}` | `{{PPP}} {{years:YY-YY}}` | `Winter 2025-26` | `Win 25-26` |
+| Find                 | Rename to                 | Note                     | Becomes                  |
+| -------------------- | ------------------------- | ------------------------ | ------------------------ |
+| `GGGG-[W]WW`         | `GGGG [week] W`           | `2026-W46`               | `2026 week 46`           |
+| `GGGG-[W]WW *`       | `GGGG/[W]WW *`            | `2026-W45 trip to Kyoto` | `2026/W45 trip to Kyoto` |
+| `* GGGG-[W]WW`       | `GGGG-[W]WW (*)`          | `notes 2026-W46`         | `2026-W46 (notes)`       |
+| `{{PPPP}} {{years}}` | `{{PPP}} {{years:YY-YY}}` | `Winter 2025-26`         | `Win 25-26`              |
 
 File names can't contain `*`, so it never clashes with a real name.
 

@@ -1,68 +1,74 @@
 # Name formats
 
-A name format turns a period into a note's name. `GGGG-[W]WW` names this week's note `2026-W46`.
+A name format turns a period into a note's name. Every example on this page is for November 13, 2026.
 
-Each period's settings show today's note as you type, and list its tokens with what each gives today.
+Each period's settings show today's note as you type, and list every token it understands with what each gives today. [Periods](periods.md) has the same lists.
 
 ## Moment
 
-Formats use [moment](https://momentjs.com/docs/#/displaying/format/), the same as Obsidian's Daily notes. Moment formats the first day of the period.
+Formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Obsidian's Daily notes do. Moment formats the period's first day.
 
-| Format | Gives |
-| --- | --- |
-| `YYYY-MM` | `2026-11` |
-| `MMMM YYYY` | `November 2026` |
-| `MMM YY` | `Nov 26` |
-| `GGGG-[W]WW` | `2026-W46` |
-| `YYYY-[Q]Q` | `2026-Q4` |
+| Format       | Gives           |
+| ------------ | --------------- |
+| `YYYY-MM`    | `2026-11`       |
+| `MMMM YYYY`  | `November 2026` |
+| `MMM YY`     | `Nov 26`        |
+| `GGGG-[W]WW` | `2026-W46`      |
+| `YYYY-[Q]Q`  | `2026-Q4`       |
 
-Text in square brackets stays as it is: `[Week] W` gives `Week 46`. Without brackets, moment reads letters as tokens: `Week` gives `461124`.
+Text in square brackets stays as it is: `[Week] W` gives `Week 46`. Without brackets, moment reads every letter it knows: `Week` gives `461124`.
 
-For weeks, use `GGGG`, the ISO year, not `YYYY`. December 29, 2025 belongs to 2026's first week.
+For weeks, use `GGGG`, the ISO year, instead of `YYYY`. December 29, 2025 belongs to 2026's first week.
 
 ## Zhami's tokens
 
-Moment knows weeks, months, quarters and years. For everything else, Zhami adds tokens in double braces. Inside the braces, only Zhami reads the letters, so they never clash with moment's.
+Moment knows weeks, months, quarters and years. For other periods, Zhami adds tokens in double braces. Only Zhami reads inside the braces, so its letters never clash with moment's.
 
-| Token | Gives | Example |
-| --- | --- | --- |
-| `{{P}}` | The period's number | `23` for the 23rd fortnight |
-| `{{Po}}` | The same, as an ordinal | `21st` for this century |
-| `{{PP}}` | The same, with a zero | `05` |
-| `{{PPP}}` | A short name | `Aut`, `FW` |
-| `{{PPPP}}` | Its name | `Autumn`, `Rittō` |
-| `{{PPPP:kanji}}` | Its name in another form | `立冬` |
+| Token            | Means                   | Gives                          |
+| ---------------- | ----------------------- | ------------------------------ |
+| `{{P}}`          | Number                  | `23`, for the fortnight        |
+| `{{Po}}`         | Number, as an ordinal   | `21st`, for the century        |
+| `{{PP}}`         | Number, with two digits | `03`, for February's fortnight |
+| `{{PPP}}`        | Short name              | `Aut`, for the season          |
+| `{{PPPP}}`       | Name                    | `Autumn`, for the season       |
+| `{{PPPP:kanji}}` | Name, in another form   | `立冬`, for the sekki          |
 
-P is for period. The letters follow moment's pattern: one for a number, `o` for an ordinal, two for a zero, three for short, four for long.
+P is for period. The letters follow moment's pattern: one for a number, `o` for an ordinal, two for two digits, three for a short name, four for a name.
 
-Not every period has every token. Use moment's where it has them: `Q` for a quarter, not `{{P}}`. A token a period doesn't have shows an error under the name format. [Periods](periods.md) lists what each period has.
+Each period has only the tokens that make sense for it. Where moment has a token, Zhami doesn't add one: a quarter uses `Q`, not `{{P}}`. A token a period doesn't have shows an error under the name format.
 
-Tokens work inside brackets too: `[F{{PP}} of] GGGG` gives `F23 of 2026`.
+Tokens also work inside brackets: `[F{{PP}} of] GGGG` gives `F23 of 2026`.
 
-## Dates and years
+## Days and years
 
-These work for every period:
+Every period has these:
 
-| Token | Gives | Example |
-| --- | --- | --- |
-| `{{start:FORMAT}}` | The first day, in any moment format | `{{start:MMM D}}` gives `Nov 9` |
-| `{{end:FORMAT}}` | The last day | `{{end:D}}` gives `15` |
-| `{{years:FORMAT}}` | Its year, or both when it crosses New Year | `{{years:YYYY-YY}}` |
+| Token       | Means                                        | Gives        |
+| ----------- | -------------------------------------------- | ------------ |
+| `{{start}}` | First day                                    | `2026-11-09` |
+| `{{end}}`   | Last day                                     | `2026-11-15` |
+| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
 
-`{{years}}` takes two year formats and what goes between them. It shows both years only when the period crosses New Year:
+`{{start}}` and `{{end}}` take any moment format after a colon:
 
-| Format | Autumn | Winter |
-| --- | --- | --- |
-| `{{PPPP}} {{years}}` | `Autumn 2026` | `Winter 2026-27` |
-| `{{PPPP}} {{years:YY-YY}}` | `Autumn 26` | `Winter 26-27` |
-| `{{PPPP}} {{years:YYYY–YYYY}}` | `Autumn 2026` | `Winter 2026–2027` |
+| Token                       | Gives      |
+| --------------------------- | ---------- |
+| `{{start:MMM D}}`           | `Nov 9`    |
+| `{{end:dddd}}`              | `Sunday`   |
+| `{{start:MMM D}}–{{end:D}}` | `Nov 9–15` |
 
-Without a format, `{{years}}` is `{{years:YYYY-YY}}`, `{{start}}` and `{{end}}` are `YYYY-MM-DD`.
+`{{years}}` takes two year formats with what goes between them. It shows both years only when a period crosses New Year, like winter:
+
+| Token                 | Autumn 2026 | Winter 2026-27 |
+| --------------------- | ----------- | -------------- |
+| `{{years}}`           | `2026`      | `2026-27`      |
+| `{{years:YY-YY}}`     | `26`        | `26-27`        |
+| `{{years:YYYY–YYYY}}` | `2026`      | `2026–2027`    |
 
 ## Folders
 
-A slash in a format makes subfolders: `GGGG/[W]WW` puts this week's note in `2026/W46`. Zhami creates the folders it needs.
+A slash makes subfolders: `GGGG/[W]WW` puts this week's note in `2026/W46`. Zhami creates the folders it needs.
 
 ## Changing a format
 
-Existing notes keep their names. Zhami creates the next note under the new name. To rename the old ones, use [Rename notes](renaming.md).
+Existing notes keep their names, and the next note gets the new one. To rename the old ones, use [Rename notes](renaming.md).

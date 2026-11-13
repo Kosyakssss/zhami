@@ -25,20 +25,30 @@ function years(start: Moment, end: Moment, format: string) {
   return `${start.format(first)}${separator}${end.format(second)}`;
 }
 
-// The tokens a period understands, and what each gives.
-export function tokens(period: Period): Record<string, string> {
-  const out: Record<string, string> = {};
+export interface Row {
+  // Exactly what to type.
+  token: string;
+  // What it means, without examples: the value shows one.
+  desc: string;
+  // What the token gives for `instance`.
+  value: string;
+}
+
+// The reference for a period, in settings and docs: moment's tokens worth
+// knowing, then Zhami's. Each value comes from rendering its own token.
+export function reference(period: Period, instance: Instance): Row[] {
+  const rows: [string, string][] = Object.entries(period.momentTokens ?? {});
   if (period.number) {
-    out.P = period.number;
-    out.Po = "The same, as an ordinal: 1st, 2nd, 3rd";
-    out.PP = "The same, with a zero: 01, 02";
+    rows.push(["{{P}}", period.number], ["{{Po}}", "{{P}} as an ordinal"], ["{{PP}}", "{{P}} with two digits"]);
   }
-  Object.assign(out, period.labels);
-  out["start:FORMAT"] = "The first day, in any moment format. Default: YYYY-MM-DD";
-  out["end:FORMAT"] = "The last day, the same way";
-  out["years:FORMAT"] = "Its year, or both years when it crosses New Year. Default: YYYY-YY";
-  if (period.key === "fiscal-quarter") out["fy:FORMAT"] = "The fiscal year it belongs to, like years";
-  return out;
+  for (const [token, desc] of Object.entries(period.labels ?? {})) rows.push([`{{${token}}}`, desc]);
+  rows.push(
+    ["{{start}}", "First day"],
+    ["{{end}}", "Last day"],
+    ["{{years}}", "Year, or both years when it crosses New Year"],
+  );
+  if (instance.year) rows.push(["{{fy}}", "Fiscal year, or both years when it crosses New Year"]);
+  return rows.map(([token, desc]) => ({ token, desc, value: render(token, period, instance).text }));
 }
 
 // The value of one token, or undefined if this period doesn't have it.
@@ -60,7 +70,7 @@ function value(name: string, arg: string | undefined, instance: Instance): strin
     case "years":
       return years(instance.start, instance.end, arg?.trim() || "YYYY-YY");
     case "fy":
-      return instance.year && years(instance.year.start, instance.year.end, arg?.trim() || "YYYY");
+      return instance.year && years(instance.year.start, instance.year.end, arg?.trim() || "YYYY-YY");
   }
   return undefined;
 }
