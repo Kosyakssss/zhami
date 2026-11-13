@@ -1,6 +1,5 @@
 import type { Moment } from "moment";
 import {
-  AbstractInputSuggest,
   addIcon,
   App,
   moment,
@@ -8,8 +7,8 @@ import {
   Notice,
   Plugin,
   PluginSettingTab,
-  Setting,
-  TFolder,
+  type SettingDefinitionItem,
+  type TFile,
 } from "obsidian";
 
 // Obsidian's typings export moment as a namespace; at runtime it is the moment function.
@@ -17,12 +16,24 @@ const today = moment as unknown as () => Moment;
 
 const DAY = "YYYY-MM-DD";
 
-// ჟ, the first letter of ჟამი, drawn on Lucide's 24px grid. Stroke width
-// is left to Obsidian, so it matches the built-in icons. Also in icon.svg.
+// ჟ, the first letter of ჟამი, from Noto Sans Georgian (SIL Open Font
+// License 1.1) at weight 600, on Obsidian's 100-unit icon grid. Also in icon.svg.
 const ICON = "zhami";
-const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v13a5 5 0 0 1-10 0"/><path d="M17 3 7 6"/><path d="M9.5 8.3c1.9.2 3 1 3 2 0 1.3-1.5 2.1-3.4 2.1-.9 0-1.6-.1-2.1-.3"/></svg>`;
+const ICON_SVG = `<path fill="currentColor" stroke="none" d="M51.8 91.7Q45.9 91.7 41.2 90Q36.4 88.3 33.1 85.3Q29.7 82.3 27.9 78.2Q26.1 74.2 26.1 69.5Q26.1 66.2 26.6 64Q27 61.9 27.9 59.9L40.5 59.9Q40 61.9 39.7 63.8Q39.5 65.7 39.5 68Q39.5 71.5 40.8 74.5Q42.1 77.5 44.8 79.4Q47.6 81.2 51.8 81.2Q56.4 81.2 59.1 79.2Q61.8 77.1 63 73.3Q64.2 69.4 64.2 64.2L64.2 18.4Q60.9 19.8 57.1 20.8Q53.3 21.8 49.2 22.4L49.2 22.7Q52 24.1 53.8 26.9Q55.6 29.8 55.6 33.6Q55.6 37.8 53.5 41.1Q51.4 44.4 47.6 46.3Q43.8 48.2 38.8 48.2Q31.6 48.2 27 44.3Q22.5 40.3 22.5 34.3Q22.5 33.3 22.6 32.3Q22.7 31.3 23 30.4L33.1 30.4Q33 31.1 32.9 31.7Q32.8 32.3 32.8 32.8Q32.8 35.6 34.4 37.3Q36 39 38.7 39Q41.7 39 43.3 37.1Q44.9 35.2 44.9 32.4Q44.9 28.8 43.1 26.8Q41.4 24.8 38.1 24.4L38.1 15.2Q45.7 14.4 52.9 12.7Q60.1 11.1 65.9 8.3L77.5 8.3L77.5 64.3Q77.5 72.9 74.5 79.1Q71.5 85.2 65.8 88.4Q60 91.7 51.8 91.7Z"/>`;
 
-type Key = "week" | "fortnight" | "month" | "quarter" | "half" | "year" | "decade" | "century" | "millennium";
+type Key =
+  | "week"
+  | "fortnight"
+  | "month"
+  | "season"
+  | "quarter"
+  | "half"
+  | "year"
+  | "decade"
+  | "century"
+  | "millennium";
+
+type Hemisphere = "north" | "south";
 
 interface Period {
   key: Key;
@@ -35,7 +46,13 @@ interface Period {
 }
 
 // Periods moment knows natively.
-function unit(key: Key, name: string, format: string, u: "isoWeek" | "month" | "quarter" | "year", n: (m: Moment) => number): Period {
+function unit(
+  key: Key,
+  name: string,
+  format: string,
+  u: "isoWeek" | "month" | "quarter" | "year",
+  n: (m: Moment) => number,
+): Period {
   return { key, name, format, n, start: (m) => m.clone().startOf(u), end: (m) => m.clone().endOf(u) };
 }
 
@@ -54,6 +71,16 @@ function years(key: Key, name: string, format: string, span: number, ordinal: bo
   };
 }
 
+// Meteorological seasons: whole months, spring from March in the north.
+// Winter starts in December, so it takes the year it starts in.
+const SEASONS: Record<Hemisphere, string[]> = {
+  north: ["Winter", "Spring", "Summer", "Autumn"],
+  south: ["Summer", "Autumn", "Winter", "Spring"],
+};
+const seasonIndex = (m: Moment) => Math.floor(((m.month() + 1) % 12) / 3);
+const seasonStart = (m: Moment) =>
+  m.clone().startOf("month").subtract((m.month() + 1) % 3, "months");
+
 const PERIODS: Period[] = [
   unit("week", "Week", "GGGG-[W]WW", "isoWeek", (m) => m.isoWeek()),
   {
@@ -61,7 +88,7 @@ const PERIODS: Period[] = [
     // with 53 weeks, the 27th fortnight is one week long.
     key: "fortnight",
     name: "Fortnight",
-    format: "GGGG-[F]{n}",
+    format: "GGGG-[F]{{n}}",
     n: (m) => Math.ceil(m.isoWeek() / 2),
     start: (m) => m.clone().isoWeek(Math.ceil(m.isoWeek() / 2) * 2 - 1).startOf("isoWeek"),
     end: (m) => {
@@ -71,19 +98,28 @@ const PERIODS: Period[] = [
     },
   },
   unit("month", "Month", "YYYY-MM", "month", (m) => m.month() + 1),
+  {
+    // Numbered by start month: March is 1, December is 4.
+    key: "season",
+    name: "Season",
+    format: "{{season}} YYYY",
+    n: (m) => seasonIndex(m) || 4,
+    start: seasonStart,
+    end: (m) => seasonStart(m).add(2, "months").endOf("month"),
+  },
   unit("quarter", "Quarter", "YYYY-[Q]Q", "quarter", (m) => m.quarter()),
   {
     key: "half",
     name: "Half-year",
-    format: "YYYY-[H]{n}",
+    format: "YYYY-[H]{{n}}",
     n: (m) => (m.month() < 6 ? 1 : 2),
     start: (m) => m.clone().startOf("year").month(m.month() < 6 ? 0 : 6),
     end: (m) => m.clone().startOf("year").month(m.month() < 6 ? 5 : 11).endOf("month"),
   },
   unit("year", "Year", "YYYY", "year", (m) => m.year()),
-  years("decade", "Decade", "{n}[s]", 10, false),
-  years("century", "Century", "{nth}[ century]", 100, true),
-  years("millennium", "Millennium", "{nth}[ millennium]", 1000, true),
+  years("decade", "Decade", "{{n}}[s]", 10, false),
+  years("century", "Century", "{{nth}} [century]", 100, true),
+  years("millennium", "Millennium", "{{nth}} [millennium]", 1000, true),
 ];
 
 const keys = <T>(value: (p: Period) => T) =>
@@ -91,14 +127,18 @@ const keys = <T>(value: (p: Period) => T) =>
 
 interface Settings {
   folder: string;
+  hemisphere: Hemisphere;
   enabled: Record<Key, boolean>;
+  folders: Record<Key, string>;
   formats: Record<Key, string>;
   templates: Record<Key, string>;
 }
 
 const DEFAULTS: Settings = {
   folder: "",
+  hemisphere: "north",
   enabled: keys((p) => ["week", "month", "quarter", "year"].includes(p.key)),
+  folders: keys(() => ""),
   formats: keys((p) => p.format),
   templates: keys(() => ""),
 };
@@ -109,11 +149,10 @@ function ordinal(n: number) {
   return `${n}${suffix}`;
 }
 
-// Moment formats, plus {n} and {nth}: the period's number, like 23 or 23rd.
-function name(period: Period, format: string, now: Moment) {
+// {{n}}, {{nth}} and {{season}}, shared by name formats and templates.
+function variables(period: Period, now: Moment, hemisphere: Hemisphere): Record<string, string> {
   const n = period.n(now);
-  const escaped = format.replace(/{nth}/g, `[${ordinal(n)}]`).replace(/{n}/g, `[${n}]`);
-  return period.start(now).format(escaped);
+  return { n: `${n}`, nth: ordinal(n), season: SEASONS[hemisphere][seasonIndex(now)]! };
 }
 
 export default class Zhami extends Plugin {
@@ -124,7 +163,9 @@ export default class Zhami extends Plugin {
     const saved = (await this.loadData()) as Partial<Settings> | null;
     this.settings = {
       folder: saved?.folder ?? DEFAULTS.folder,
+      hemisphere: saved?.hemisphere ?? DEFAULTS.hemisphere,
       enabled: { ...DEFAULTS.enabled, ...saved?.enabled },
+      folders: { ...DEFAULTS.folders, ...saved?.folders },
       formats: { ...DEFAULTS.formats, ...saved?.formats },
       templates: { ...DEFAULTS.templates, ...saved?.templates },
     };
@@ -136,22 +177,26 @@ export default class Zhami extends Plugin {
   toggleCommand(period: Period) {
     const id = `open-${period.key}`;
     if (this.settings.enabled[period.key]) {
-      this.addCommand({
-        id,
-        name: `Open this ${period.name.toLowerCase()}`,
-        icon: ICON,
-        callback: () => this.open(period),
-      });
+      this.addCommand({ id, name: commandName(period), icon: ICON, callback: () => this.open(period) });
     } else {
       this.removeCommand(id);
     }
   }
 
+  // The note's path for the period around `now`. Moment formats, applied to
+  // the period's first day, plus {{n}}, {{nth}} and {{season}}. A format with
+  // slashes, like YYYY/[W]WW, puts notes in subfolders.
+  path(period: Period, now: Moment, format = this.settings.formats[period.key]) {
+    const vars = variables(period, now, this.settings.hemisphere);
+    const escaped = (format || period.format).replace(/{{\s*(n|nth|season)\s*}}/gi, (_, k: string) => `[${vars[k.toLowerCase()]}]`);
+    const folder = this.settings.folders[period.key] || this.settings.folder || "/";
+    return normalizePath(`${folder}/${period.start(now).format(escaped)}`);
+  }
+
   async open(period: Period) {
     const { vault, workspace } = this.app;
     const now = today();
-    const title = name(period, this.settings.formats[period.key] || period.format, now);
-    const path = normalizePath(`${this.settings.folder || "/"}/${title}.md`);
+    const path = `${this.path(period, now)}.md`;
 
     let file = vault.getFileByPath(path);
     if (!file) {
@@ -159,13 +204,13 @@ export default class Zhami extends Plugin {
       const templatePath = this.settings.templates[period.key];
       const template = templatePath ? vault.getFileByPath(normalizePath(templatePath.replace(/(\.md)?$/, ".md"))) : null;
       if (templatePath && !template) new Notice(`Zhami: template not found: ${templatePath}`);
-      const text = template ? fill(await vault.read(template), title.split("/").pop()!, now, period) : "";
+      const title = path.split("/").pop()!.slice(0, -3);
+      const text = template ? this.fill(await vault.read(template), title, now, period) : "";
       file = await vault.create(path, text);
     }
     await workspace.getLeaf(false).openFile(file);
   }
 
-  // A format with slashes, like YYYY/[W]WW, puts notes in subfolders.
   async ensureFolder(path: string) {
     let current = "";
     for (const part of path.split("/").filter(Boolean)) {
@@ -173,40 +218,38 @@ export default class Zhami extends Plugin {
       if (!this.app.vault.getFolderByPath(current)) await this.app.vault.createFolder(current);
     }
   }
-}
 
-class PathSuggest extends AbstractInputSuggest<string> {
-  constructor(
-    app: App,
-    private input: HTMLInputElement,
-    private kind: "folder" | "note",
-  ) {
-    super(app, input);
-  }
-
-  getSuggestions(query: string) {
-    const q = query.toLowerCase();
-    const paths =
-      this.kind === "folder"
-        ? this.app.vault
-            .getAllLoadedFiles()
-            .filter((f) => f instanceof TFolder && !f.isRoot())
-            .map((f) => f.path)
-        : this.app.vault.getMarkdownFiles().map((f) => f.path);
-    return paths.filter((p) => p.toLowerCase().includes(q)).sort();
-  }
-
-  renderSuggestion(path: string, el: HTMLElement) {
-    el.setText(path);
-  }
-
-  selectSuggestion(path: string) {
-    this.setValue(path);
-    this.input.dispatchEvent(new Event("input"));
-    this.close();
+  // Same variables as the core Templates plugin, plus {{start}}, {{end}},
+  // {{n}}, {{nth}} and {{season}}.
+  fill(text: string, title: string, now: Moment, period: Period) {
+    const vars = variables(period, now, this.settings.hemisphere);
+    return text.replace(
+      /{{\s*(title|date|time|start|end|n|nth|season)\s*(?::([^}]+))?}}/gi,
+      (_, key: string, format?: string) => {
+        const f = format?.trim();
+        switch (key.toLowerCase()) {
+          case "title":
+            return title;
+          case "time":
+            return now.format(f || "HH:mm");
+          case "start":
+            return period.start(now).format(f || DAY);
+          case "end":
+            return period.end(now).format(f || DAY);
+          case "date":
+            return now.format(f || DAY);
+          default:
+            return vars[key.toLowerCase()]!;
+        }
+      },
+    );
   }
 }
 
+const commandName = (period: Period) => `Open this ${period.name.toLowerCase()}`;
+
+// Settings are declarative: a default folder, then one page per period.
+// Control keys are paths into the settings object, like "formats.week".
 class ZhamiSettings extends PluginSettingTab {
   icon = ICON;
 
@@ -217,94 +260,117 @@ class ZhamiSettings extends PluginSettingTab {
     super(app, plugin);
   }
 
-  display() {
-    const { containerEl } = this;
-    const { settings } = this.plugin;
-    const save = () => this.plugin.saveData(settings);
-    containerEl.empty();
-
-    new Setting(containerEl)
-      .setName("Folder")
-      .setDesc("New notes go here.")
-      .addSearch((search) => {
-        new PathSuggest(this.app, search.inputEl, "folder");
-        search
-          .setPlaceholder("Vault root")
-          .setValue(settings.folder)
-          .onChange((value) => {
-            settings.folder = value.trim();
-            void save();
-          });
-      });
-
-    for (const period of PERIODS) {
-      new Setting(containerEl)
-        .setName(period.name)
-        .setHeading()
-        .addToggle((toggle) =>
-          toggle.setValue(settings.enabled[period.key]).onChange((value) => {
-            settings.enabled[period.key] = value;
-            this.plugin.toggleCommand(period);
-            void save();
-            this.display();
-          }),
-        );
-      if (!settings.enabled[period.key]) continue;
-
-      const format = new Setting(containerEl).setName("Name format");
-      const sample = createSpan({ cls: "u-pop" });
-      const update = (value: string) => sample.setText(name(period, value || period.format, today()));
-      format.descEl.append("Your current syntax looks like this: ", sample, ". ");
-      if (period.format.includes("{n")) format.descEl.append("{n} is its number, {nth} is 1st, 2nd, and so on. ");
-      format.descEl.createEl("a", {
-        text: "Format reference",
-        href: "https://momentjs.com/docs/#/displaying/format/",
-      });
-      format.addText((text) =>
-        text
-          .setPlaceholder(period.format)
-          .setValue(settings.formats[period.key])
-          .onChange((value) => {
-            settings.formats[period.key] = value.trim();
-            update(value.trim());
-            void save();
-          }),
-      );
-      update(settings.formats[period.key]);
-
-      new Setting(containerEl)
-        .setName("Template")
-        .setDesc("Leave empty for a blank note.")
-        .addSearch((search) => {
-          new PathSuggest(this.app, search.inputEl, "note");
-          search
-            .setPlaceholder(`Example: Templates/${period.name}`)
-            .setValue(settings.templates[period.key])
-            .onChange((value) => {
-              settings.templates[period.key] = value.trim();
-              void save();
-            });
-        });
-    }
+  getControlValue(key: string): unknown {
+    return key.split(".").reduce<any>((value, part) => value?.[part], this.plugin.settings);
   }
-}
 
-// Same variables as the core Templates plugin, plus {{start}} and {{end}}:
-// the first and last day of the period.
-function fill(text: string, title: string, now: Moment, period: Period) {
-  return text.replace(/{{\s*(title|date|time|start|end)\s*(?::([^}]+))?}}/gi, (_, key: string, format?: string) => {
-    const f = format?.trim();
-    switch (key.toLowerCase()) {
-      case "title":
-        return title;
-      case "time":
-        return now.format(f || "HH:mm");
-      case "start":
-        return period.start(now).format(f || DAY);
-      case "end":
-        return period.end(now).format(f || DAY);
-      default:
-        return now.format(f || DAY);
-    }
-  });
+  async setControlValue(key: string, value: unknown) {
+    const parts = key.split(".");
+    const last = parts.pop()!;
+    const target = parts.reduce<any>((object, part) => object[part], this.plugin.settings);
+    target[last] = typeof value === "string" ? value.trim() : value;
+    await this.plugin.saveData(this.plugin.settings);
+
+    const period = PERIODS.find((p) => p.key === last);
+    if (parts[0] === "enabled" && period) this.plugin.toggleCommand(period);
+    this.refreshDomState();
+  }
+
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const { settings } = this.plugin;
+    const on = (period: Period) => () => settings.enabled[period.key];
+
+    return [
+      {
+        type: "group",
+        items: [
+          {
+            name: "Folder",
+            desc: "New notes go here, unless a period has its own folder.",
+            control: { type: "folder", key: "folder", placeholder: "Vault root" },
+          },
+        ],
+      },
+      {
+        type: "group",
+        heading: "Periods",
+        items: PERIODS.map((period) => ({
+          type: "page" as const,
+          name: period.name,
+          displayValue: () => (settings.enabled[period.key] ? this.plugin.path(period, today()) : "Off"),
+          items: [
+            {
+              type: "group" as const,
+              items: [
+                {
+                  name: commandName(period),
+                  desc: "Adds this command.",
+                  control: { type: "toggle" as const, key: `enabled.${period.key}` },
+                },
+              ],
+            },
+            {
+              type: "group" as const,
+              visible: on(period),
+              items: [
+                {
+                  name: "Folder",
+                  desc: "Leave empty to use the default folder.",
+                  control: {
+                    type: "folder" as const,
+                    key: `folders.${period.key}`,
+                    placeholder: settings.folder || "Vault root",
+                  },
+                },
+                {
+                  name: "Name format",
+                  render: (setting) => {
+                    const sample = createSpan({ cls: "u-pop" });
+                    const update = (value: string) => sample.setText(this.plugin.path(period, today(), value));
+                    const desc = createFragment((f) => {
+                      f.append("New notes go to ", sample, ". ");
+                      f.createEl("a", { text: "Format reference", href: "https://momentjs.com/docs/#/displaying/format/" });
+                    });
+                    setting.setDesc(desc).addText((text) =>
+                      text
+                        .setPlaceholder(period.format)
+                        .setValue(settings.formats[period.key])
+                        .onChange(async (value) => {
+                          update(value.trim());
+                          await this.setControlValue(`formats.${period.key}`, value);
+                        }),
+                    );
+                    update(settings.formats[period.key]);
+                  },
+                },
+                ...(period.key === "season"
+                  ? [
+                      {
+                        name: "Hemisphere",
+                        desc: "Seasons are flipped in the south.",
+                        control: {
+                          type: "dropdown" as const,
+                          key: "hemisphere",
+                          options: { north: "Northern", south: "Southern" },
+                        },
+                      },
+                    ]
+                  : []),
+                {
+                  name: "Template",
+                  desc: "Leave empty for a blank note.",
+                  control: {
+                    type: "file" as const,
+                    key: `templates.${period.key}`,
+                    placeholder: `Example: Templates/${period.name}.md`,
+                    filter: (file: TFile) => file.extension === "md",
+                  },
+                },
+              ],
+            },
+          ],
+        })),
+      },
+    ];
+  }
 }

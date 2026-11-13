@@ -2,8 +2,8 @@
   "id": "zhami",
   "name": "Zhami",
   "version": "0.1.0",
-  "minAppVersion": "1.12.0",
-  "description": "Open or create this week's, quarter's, or year's note.",
+  "minAppVersion": "1.13.0",
+  "description": "Open or create the note for this week, month, year, or any other period, from a template.",
   "author": "Kote",
   "isDesktopOnly": false
 }
