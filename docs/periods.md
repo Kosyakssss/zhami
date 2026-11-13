@@ -158,7 +158,7 @@ A hundred years: the 21st runs from 2001 to 2100. Command: **Open this century**
 | `{{PP}}`    | `{{P}}` with two digits                      | `21`         |
 | `{{start}}` | First day                                    | `2001-01-01` |
 | `{{end}}`   | Last day                                     | `2100-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2001-00`    |
+| `{{years}}` | Year, or both years when it crosses New Year | `2001-2100`  |
 
 ### Millennium
 
@@ -176,7 +176,7 @@ A thousand years: the 3rd runs from 2001 to 3000. Command: **Open this millenniu
 | `{{PP}}`    | `{{P}}` with two digits                      | `03`         |
 | `{{start}}` | First day                                    | `2001-01-01` |
 | `{{end}}`   | Last day                                     | `3000-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2001-00`    |
+| `{{years}}` | Year, or both years when it crosses New Year | `2001-3000`  |
 
 ## Seasons
 

@@ -22,7 +22,10 @@ function years(start: Moment, end: Moment, format: string) {
   if (!parts) return start.format(format);
   const [, first, separator, second] = parts;
   if (start.year() === end.year()) return start.format(first);
-  return `${start.format(first)}${separator}${end.format(second)}`;
+  // A short second year only works within one century: 2026-27, but
+  // 1999-2000 and 2001-2100.
+  const sameCentury = Math.floor(start.year() / 100) === Math.floor(end.year() / 100);
+  return `${start.format(first)}${separator}${end.format(sameCentury ? second! : "YYYY")}`;
 }
 
 export interface Row {

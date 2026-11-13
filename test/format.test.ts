@@ -44,6 +44,13 @@ describe("name formats", () => {
     expect(at("meteorological", "2027-01-01", "{{years:YYYY/YYYY}}").name).toBe("2026/2027");
   });
 
+  test("{{years}} writes the second year in full when the century changes", () => {
+    expect(at("decade", "2026-11-13", "{{years}}").name).toBe("2020-29");
+    expect(at("century", "2026-11-13", "{{years}}").name).toBe("2001-2100");
+    expect(at("millennium", "2026-11-13", "{{years}}").name).toBe("2001-3000");
+    expect(at("meteorological", "2000-01-10", "{{years}}").name).toBe("1999-2000");
+  });
+
   test("{{start}} and {{end}} take any moment format", () => {
     expect(at("week", "2026-11-13", "{{start:MMM D}}–{{end:D}}").name).toBe("Nov 9–15");
   });

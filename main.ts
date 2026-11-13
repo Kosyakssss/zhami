@@ -15,35 +15,14 @@ import {
 } from "obsidian";
 import { fill, reference, render } from "./src/format";
 import { moment, useMoment } from "./src/moment";
-import { GROUPS, PERIODS, type Context, type Hemisphere, type Instance, type Period } from "./src/periods";
+import { GROUPS, PERIODS, type Context, type Instance, type Period } from "./src/periods";
 import { instances, plan } from "./src/rename";
+import { DEFAULTS, load, tidy, type Settings } from "./src/settings";
 
 // ჟ, the first letter of ჟამი, from Noto Sans Georgian (SIL Open Font
 // License 1.1) at weight 600, on Obsidian's 100-unit icon grid. Also in icon.svg.
 const ICON = "zhami";
 const ICON_SVG = `<path fill="currentColor" stroke="none" d="M51.8 91.7Q45.9 91.7 41.2 90Q36.4 88.3 33.1 85.3Q29.7 82.3 27.9 78.2Q26.1 74.2 26.1 69.5Q26.1 66.2 26.6 64Q27 61.9 27.9 59.9L40.5 59.9Q40 61.9 39.7 63.8Q39.5 65.7 39.5 68Q39.5 71.5 40.8 74.5Q42.1 77.5 44.8 79.4Q47.6 81.2 51.8 81.2Q56.4 81.2 59.1 79.2Q61.8 77.1 63 73.3Q64.2 69.4 64.2 64.2L64.2 18.4Q60.9 19.8 57.1 20.8Q53.3 21.8 49.2 22.4L49.2 22.7Q52 24.1 53.8 26.9Q55.6 29.8 55.6 33.6Q55.6 37.8 53.5 41.1Q51.4 44.4 47.6 46.3Q43.8 48.2 38.8 48.2Q31.6 48.2 27 44.3Q22.5 40.3 22.5 34.3Q22.5 33.3 22.6 32.3Q22.7 31.3 23 30.4L33.1 30.4Q33 31.1 32.9 31.7Q32.8 32.3 32.8 32.8Q32.8 35.6 34.4 37.3Q36 39 38.7 39Q41.7 39 43.3 37.1Q44.9 35.2 44.9 32.4Q44.9 28.8 43.1 26.8Q41.4 24.8 38.1 24.4L38.1 15.2Q45.7 14.4 52.9 12.7Q60.1 11.1 65.9 8.3L77.5 8.3L77.5 64.3Q77.5 72.9 74.5 79.1Q71.5 85.2 65.8 88.4Q60 91.7 51.8 91.7Z"/>`;
-
-// Everything per period is keyed by the period's key, like "week".
-interface Settings {
-  folder: string;
-  hemisphere: Hemisphere;
-  enabled: Record<string, boolean>;
-  folders: Record<string, string>;
-  formats: Record<string, string>;
-  templates: Record<string, string>;
-  // Start dates, as MM-DD, for fashion seasons, fiscal and academic years.
-  dates: Record<string, string>;
-}
-
-const DEFAULTS: Settings = {
-  folder: "",
-  hemisphere: "north",
-  enabled: { week: true, month: true, quarter: true, year: true },
-  folders: {},
-  formats: {},
-  templates: {},
-  dates: {},
-};
 
 export default class Zhami extends Plugin {
   settings: Settings = structuredClone(DEFAULTS);
@@ -51,18 +30,14 @@ export default class Zhami extends Plugin {
   async onload() {
     useMoment(obsidianMoment);
     addIcon(ICON, ICON_SVG);
-    const saved = (await this.loadData()) as Partial<Settings> | null;
-    this.settings = {
-      folder: saved?.folder ?? DEFAULTS.folder,
-      hemisphere: saved?.hemisphere ?? DEFAULTS.hemisphere,
-      enabled: { ...DEFAULTS.enabled, ...saved?.enabled },
-      folders: { ...saved?.folders },
-      formats: { ...saved?.formats },
-      templates: { ...saved?.templates },
-      dates: { ...saved?.dates },
-    };
+    this.settings = load(await this.loadData());
+    await this.saveSettings();
     for (const period of PERIODS) this.toggleCommand(period);
     this.addSettingTab(new ZhamiSettings(this.app, this));
+  }
+
+  async saveSettings() {
+    await this.saveData(tidy(this.settings));
   }
 
   get context(): Context {
@@ -168,7 +143,7 @@ class ZhamiSettings extends PluginSettingTab {
     const last = parts.pop()!;
     const target = parts.reduce<any>((object, part) => (object[part] ??= {}), this.plugin.settings);
     target[last] = typeof value === "string" ? value.trim() : value;
-    await this.plugin.saveData(this.plugin.settings);
+    await this.plugin.saveSettings();
 
     const period = PERIODS.find((p) => p.key === last);
     if (parts[0] === "enabled" && period) this.plugin.toggleCommand(period);
@@ -322,7 +297,7 @@ class ZhamiSettings extends PluginSettingTab {
                 .setDisabled(used)
                 .onClick(() => {
                   settings.formats[period.key] = format === period.format ? "" : format;
-                  void this.plugin.saveData(settings);
+                  void this.plugin.saveSettings();
                   this.update();
                 }),
             );
