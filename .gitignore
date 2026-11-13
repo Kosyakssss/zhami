@@ -5,4 +5,7 @@ test/zhami-vault/.obsidian/workspace*.json
 test/zhami-vault/.obsidian/*.json.bak
 test/zhami-vault/.trash/
 test/zhami-vault/Calendar/
-test/zhami-vault/Rename/
+test/zhami-vault/Weeks/
+test/e2e/shots/
+test/zhami-vault/.obsidian/appearance.json
+test/zhami-vault/.obsidian/core-plugins.json

@@ -1,3 +1,5 @@
 {
-  "livePreview": true
+  "livePreview": true,
+  "settingsPopoutWindow": false,
+  "alwaysUpdateLinks": true
 }
