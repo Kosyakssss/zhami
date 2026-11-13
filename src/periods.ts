@@ -94,25 +94,35 @@ const zoned = (hours: number) => (ms: number) => new Date(ms + hours * 3_600_000
 // calendar year; the instance around `m` runs from the last mark on or
 // before it to the day before the next.
 function marks(list: (year: number, ctx: Context) => Mark[]) {
-  const cache = new Map<string, Mark[]>();
-  const year = (y: number, ctx: Context) => {
-    const key = `${y}|${ctx.hemisphere}|${JSON.stringify(ctx.dates)}`;
+  // Each year's marks, then each year's with the years either side, sorted.
+  const years = new Map<string, Mark[]>();
+  const arounds = new Map<string, Mark[]>();
+  const cached = (cache: Map<string, Mark[]>, key: string, make: () => Mark[]) => {
     let found = cache.get(key);
     if (!found) {
-      found = list(y, ctx);
+      found = make();
       if (cache.size > 2000) cache.clear();
       cache.set(key, found);
     }
     return found;
   };
+  const year = (y: number, ctx: Context) => cached(years, `${y}|${ctx.hemisphere}|${JSON.stringify(ctx.dates)}`, () => list(y, ctx));
+  const around = (y: number, ctx: Context) =>
+    cached(arounds, `${y}|${ctx.hemisphere}|${JSON.stringify(ctx.dates)}`, () =>
+      [...year(y - 1, ctx), ...year(y, ctx), ...year(y + 1, ctx)].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)),
+    );
   return (m: Moment, ctx: Context): Instance => {
     const today = m.format("YYYY-MM-DD");
-    const y = m.year();
-    const all = [...year(y - 1, ctx), ...year(y, ctx), ...year(y + 1, ctx)].sort((a, b) =>
-      a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
-    );
-    let i = all.length - 1;
-    while (i >= 0 && all[i]!.date > today) i--;
+    const all = around(m.year(), ctx);
+    // The last mark on or before today.
+    let lo = 0;
+    let hi = all.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (all[mid]!.date <= today) lo = mid + 1;
+      else hi = mid;
+    }
+    const i = lo - 1;
     const mark = all[i];
     const next = all[i + 1];
     if (!mark || !next) throw new Error(`Zhami: no period around ${today}`);

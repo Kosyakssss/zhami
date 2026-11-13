@@ -74,15 +74,23 @@ export function deltaT(year: number) {
   return -20 + 32 * ((y - 1820) / 100) ** 2 - 0.5628 * (2150 - y);
 }
 
+// How fast the sun moves along the ecliptic, in degrees a day: about 1°,
+// faster in January, when the Earth is nearest. From the equation of the
+// centre (Meeus, chapter 25); close enough to steer Newton's method.
+function sunSpeed(jde: number) {
+  const m = (357.52911 + 35999.05029 * ((jde - J2000) / 36525)) * rad;
+  return 0.98564736 + 0.98560028 * (1.914602 * Math.cos(m) + 0.039986 * Math.cos(2 * m)) * rad;
+}
+
 // The instant, in Unix milliseconds, when the sun reaches `longitude` near
-// the instant `near`. Newton's method: the sun moves about 1° a day.
+// the instant `near`, by Newton's method.
 export function sunReaches(longitude: number, near: number) {
   const year = 1970 + near / (365.2425 * DAY);
   const dt = deltaT(year) / 86400;
   let jde = near / DAY + 2440587.5 + dt;
   for (let i = 0; i < 20; i++) {
     const diff = ((longitude - sunLongitude(jde) + 540) % 360) - 180;
-    jde += diff * 1.0146;
+    jde += diff / sunSpeed(jde);
     if (Math.abs(diff) < 1e-7) break;
   }
   return (jde - dt - 2440587.5) * DAY;
