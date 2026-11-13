@@ -45,8 +45,8 @@ export interface Period {
   // Whose clock decides the date, for periods that start at an instant,
   // to follow "Dated in".
   clock?: string;
-  // The command's name, when "Open this <name>" doesn't read well.
-  command?: string;
+  // What commands call it, when its name doesn't read well after "Open this".
+  noun?: string;
   at(m: Moment, ctx: Context): Instance;
 }
 
@@ -311,7 +311,7 @@ export const PERIODS: Period[] = [
   {
     key: "wheel",
     name: "Wheel of the Year",
-    command: "Open this festival of the Wheel of the Year",
+    noun: "festival of the Wheel of the Year",
     group: "Seasons",
     span: "Eight festivals: the solstices, the equinoxes, and the days between",
     format: "{{PPPP}} YYYY{{end?:-YY}}",
@@ -530,3 +530,13 @@ export const PERIODS: Period[] = [
 ];
 
 export const GROUPS: Group[] = ["Calendar", "Seasons", "Work", "Japan", "China", "Korea", "India"];
+
+// What commands call a period: "Open next week".
+export const noun = (period: Period) => period.noun ?? period.name.toLowerCase();
+
+// The occurrence after or before one: the period around the day after it
+// ends, or the day before it starts.
+export const next = (period: Period, ctx: Context, instance: Instance) =>
+  period.at(instance.end.clone().add(1, "day").startOf("day"), ctx);
+export const previous = (period: Period, ctx: Context, instance: Instance) =>
+  period.at(instance.start.clone().subtract(1, "day"), ctx);

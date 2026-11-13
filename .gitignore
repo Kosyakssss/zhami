@@ -1,2 +1,8 @@
 node_modules/
 main.js
+test/zhami-vault/.obsidian/plugins/zhami/
+test/zhami-vault/.obsidian/workspace*.json
+test/zhami-vault/.obsidian/*.json.bak
+test/zhami-vault/.trash/
+test/zhami-vault/Calendar/
+test/zhami-vault/Rename/

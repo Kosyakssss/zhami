@@ -3,7 +3,7 @@
 import moment from "moment";
 import { reference, render } from "../src/format";
 import { useMoment } from "../src/moment";
-import { GROUPS, PERIODS, type Context, type Period } from "../src/periods";
+import { GROUPS, noun, PERIODS, type Context, type Period } from "../src/periods";
 
 useMoment(moment);
 const ctx: Context = { hemisphere: "north", dates: {} };
@@ -45,7 +45,7 @@ const code = (s: string) => "`" + s.replace(/\|/g, "\\|") + "`";
 function section(period: Period) {
   const [first, second] = DAYS.map((d) => period.at(moment(d, "YYYY-MM-DD"), ctx));
   const out: string[] = [`### ${period.name}`, ""];
-  out.push(`${period.span}.${period.clock ? ` Dated in ${period.clock}.` : ""} Command: **${period.command ?? `Open this ${period.name.toLowerCase()}`}**.`, "");
+  out.push(`${period.span}.${period.clock ? ` Dated in ${period.clock}.` : ""} Commands: **Open this/next/previous ${noun(period)}**.`, "");
   if (period.dates?.length) {
     out.push(`Settings: ${period.dates.map((d) => `**${d.name}**, ${code(d.default)} by default`).join("; ")}.`, "");
   }

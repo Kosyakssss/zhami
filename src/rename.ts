@@ -1,30 +1,50 @@
 import type { Moment } from "moment";
 import { render } from "./format";
-import type { Context, Instance, Period } from "./periods";
+import { next, previous, type Context, type Instance, type Period } from "./periods";
 
-// Every occurrence of a period around `around`, newest last, up to `limit`
+// Every occurrence of a period around `around`, oldest first, up to `limit`
 // each way. Stops early where a period has no data, like zodiac years
 // outside 1901 to 2100.
 export function instances(period: Period, ctx: Context, around: Moment, limit = 10_000): Instance[] {
-  const before: Instance[] = [];
-  const after: Instance[] = [];
-  const step = (from: Moment, into: Instance[], back: boolean) => {
-    let m = from.clone();
-    for (let i = 0; i < limit; i++) {
-      let instance: Instance;
+  const walk = (from: Instance | undefined, step: typeof next) => {
+    const out: Instance[] = [];
+    let instance = from;
+    for (let i = 0; i < limit && instance; i++) {
+      out.push(instance);
       try {
-        instance = period.at(m, ctx);
+        instance = step(period, ctx, instance);
       } catch {
-        return;
+        instance = undefined;
       }
-      into.push(instance);
-      m = back ? instance.start.clone().subtract(1, "day") : instance.end.clone().add(1, "day").startOf("day");
-      if (m.year() < 1 || m.year() > 9999) return;
+      if (instance && (instance.start.year() < 1 || instance.start.year() > 9999)) instance = undefined;
     }
+    return out;
   };
-  step(around, after, false);
-  step(after[0] ? after[0].start.clone().subtract(1, "day") : around, before, true);
+  let here: Instance | undefined;
+  try {
+    here = period.at(around, ctx);
+  } catch {
+    return [];
+  }
+  let first: Instance | undefined;
+  try {
+    first = previous(period, ctx, here);
+  } catch {
+    first = undefined;
+  }
+  const after = walk(here, next);
+  const before = walk(first, previous);
   return [...before.reverse(), ...after];
+}
+
+// Occurrences by their name under `format`, to tell which one a note is.
+export function byName(period: Period, ctx: Context, format: string, around: Moment, limit = 2000) {
+  const map = new Map<string, Instance>();
+  for (const instance of instances(period, ctx, around, limit)) {
+    const { text, errors } = render(format, period, instance);
+    if (!errors.length) map.set(text, instance);
+  }
+  return map;
 }
 
 export interface Move {

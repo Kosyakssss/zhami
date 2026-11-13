@@ -15,8 +15,8 @@ import {
 } from "obsidian";
 import { fill, reference, render } from "./src/format";
 import { moment, useMoment } from "./src/moment";
-import { GROUPS, PERIODS, type Context, type Instance, type Period } from "./src/periods";
-import { instances, plan } from "./src/rename";
+import { GROUPS, next, noun, PERIODS, previous, type Context, type Instance, type Period } from "./src/periods";
+import { byName, instances, plan } from "./src/rename";
 import { DEFAULTS, load, tidy, type Settings } from "./src/settings";
 
 // ჟ, the first letter of ჟამი, from Noto Sans Georgian (SIL Open Font
@@ -44,13 +44,15 @@ export default class Zhami extends Plugin {
     return { hemisphere: this.settings.hemisphere, dates: this.settings.dates };
   }
 
-  // Only enabled periods get a command, so the command palette stays short.
+  // Only enabled periods get commands, so the command palette stays short.
   toggleCommand(period: Period) {
-    const id = `open-${period.key}`;
-    if (this.settings.enabled[period.key]) {
-      this.addCommand({ id, name: commandName(period), icon: ICON, callback: () => void this.open(period) });
-    } else {
-      this.removeCommand(id);
+    for (const step of STEPS) {
+      const id = `open-${step.id}${period.key}`;
+      if (this.settings.enabled[period.key]) {
+        this.addCommand({ id, name: `Open ${step.word} ${noun(period)}`, icon: ICON, callback: () => void this.open(period, step.by) });
+      } else {
+        this.removeCommand(id);
+      }
     }
   }
 
@@ -72,11 +74,33 @@ export default class Zhami extends Plugin {
     return { path: normalizePath(`${this.folder(period) || "/"}/${rendered.text}`), errors: rendered.errors };
   }
 
-  async open(period: Period) {
+  // The occurrence an open note is, if it's one of this period's notes.
+  private names = new Map<string, Map<string, Instance>>();
+  showing(period: Period): Instance | undefined {
+    const file = this.app.workspace.getActiveFile();
+    const folder = normalizePath(this.folder(period) || "/");
+    const prefix = folder === "/" ? "" : `${folder}/`;
+    if (!file || file.extension !== "md" || !file.path.startsWith(prefix)) return undefined;
+    const format = this.format(period);
+    const key = `${period.key}|${format}|${JSON.stringify(this.context)}`;
+    let names = this.names.get(key);
+    if (!names) {
+      names = byName(period, this.context, format, moment());
+      this.names.set(key, names);
+    }
+    return names.get(file.path.slice(prefix.length, -3));
+  }
+
+  // Opens this occurrence of a period, or the next or previous one, and
+  // creates its note from the template if needed. Next and previous step
+  // from the period's note you're looking at, or else from today.
+  async open(period: Period, by: -1 | 0 | 1 = 0) {
     const { vault, workspace } = this.app;
     let instance: Instance;
     try {
-      instance = this.instance(period);
+      instance = (by && this.showing(period)) || this.instance(period);
+      if (by === 1) instance = next(period, this.context, instance);
+      if (by === -1) instance = previous(period, this.context, instance);
     } catch (e) {
       new Notice(`Zhami: ${(e as Error).message.replace(/^Zhami: /, "")}`);
       return;
@@ -109,7 +133,11 @@ export default class Zhami extends Plugin {
   }
 }
 
-const commandName = (period: Period) => period.command ?? `Open this ${period.name.toLowerCase()}`;
+const STEPS = [
+  { id: "", word: "this", by: 0 },
+  { id: "next-", word: "next", by: 1 },
+  { id: "previous-", word: "previous", by: -1 },
+] as const;
 
 const DOCS = "https://github.com/Kosyakssss/zhami/blob/main/docs";
 // GitHub's heading anchors: lowercase, punctuation dropped, spaces to dashes.
@@ -209,8 +237,8 @@ class ZhamiSettings extends PluginSettingTab {
         type: "group",
         items: [
           {
-            name: commandName(period),
-            desc: period.clock ? `${period.span}. Dated in ${period.clock}.` : `${period.span}.`,
+            name: "Commands",
+            desc: `Open this, next and previous ${noun(period)}. ${period.span}.${period.clock ? ` Dated in ${period.clock}.` : ""}`,
             control: { type: "toggle", key: `enabled.${period.key}` },
           },
         ],

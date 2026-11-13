@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { sunSteps } from "../src/astro";
+import { next, PERIODS, previous } from "../src/periods";
+import { byName } from "../src/rename";
 import hko from "./fixtures/hko.json";
 import { at, moment, north, period, south } from "./setup";
 
@@ -156,5 +158,31 @@ describe("the sun", () => {
       });
     }
     expect(differ).toEqual([]);
+  });
+});
+
+describe("next and previous", () => {
+  test("every period steps forward and back without gaps or overlaps", () => {
+    for (const p of PERIODS) {
+      let instance = p.at(moment("2026-11-13", "YYYY-MM-DD"), north);
+      const start = instance.start.format("YYYY-MM-DD");
+      const steps = p.key === "millennium" ? 3 : 30;
+      for (let i = 0; i < steps; i++) {
+        const following = next(p, north, instance);
+        expect([p.key, following.start.diff(instance.end, "ms")]).toEqual([p.key, 1]);
+        instance = following;
+      }
+      for (let i = 0; i < steps; i++) instance = previous(p, north, instance);
+      expect([p.key, instance.start.format("YYYY-MM-DD")]).toEqual([p.key, start]);
+    }
+  });
+
+  test("a note's name tells which occurrence it is", () => {
+    const names = byName(period("week"), north, "GGGG-[W]WW", moment("2026-11-13", "YYYY-MM-DD"));
+    expect(names.get("2026-W40")!.start.format("YYYY-MM-DD")).toBe("2026-09-28");
+    expect(names.get("2026-W53")!.end.format("YYYY-MM-DD")).toBe("2027-01-03");
+    expect(names.get("2026-W54")).toBeUndefined();
+    const seasons = byName(period("meteorological"), north, "{{PPPP}} YYYY{{end?:-YY}}", moment("2026-11-13", "YYYY-MM-DD"));
+    expect(seasons.get("Winter 2026-27")!.start.format("YYYY-MM-DD")).toBe("2026-12-01");
   });
 });

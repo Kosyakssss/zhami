@@ -10,7 +10,7 @@ Moment's tokens, like `YYYY` and `MMMM`, work for every period. The tables list 
 
 ### Week
 
-An ISO week, Monday to Sunday. Command: **Open this week**.
+An ISO week, Monday to Sunday. Commands: **Open this/next/previous week**.
 
 | Example                     | Nov 13, 2026   | Jan 10, 2027  |
 | --------------------------- | -------------- | ------------- |
@@ -31,7 +31,7 @@ An ISO week, Monday to Sunday. Command: **Open this week**.
 
 ### Fortnight
 
-Two ISO weeks: 1 and 2, 3 and 4, and so on. Command: **Open this fortnight**.
+Two ISO weeks: 1 and 2, 3 and 4, and so on. Commands: **Open this/next/previous fortnight**.
 
 | Example                         | Nov 13, 2026        | Jan 10, 2027       |
 | ------------------------------- | ------------------- | ------------------ |
@@ -51,7 +51,7 @@ Two ISO weeks: 1 and 2, 3 and 4, and so on. Command: **Open this fortnight**.
 
 ### Month
 
-A calendar month. Command: **Open this month**.
+A calendar month. Commands: **Open this/next/previous month**.
 
 | Example             | Nov 13, 2026       | Jan 10, 2027      |
 | ------------------- | ------------------ | ----------------- |
@@ -71,7 +71,7 @@ A calendar month. Command: **Open this month**.
 
 ### Quarter
 
-Three calendar months, from January, April, July and October. Command: **Open this quarter**.
+Three calendar months, from January, April, July and October. Commands: **Open this/next/previous quarter**.
 
 | Example               | Nov 13, 2026       | Jan 10, 2027       |
 | --------------------- | ------------------ | ------------------ |
@@ -89,7 +89,7 @@ Three calendar months, from January, April, July and October. Command: **Open th
 
 ### Half-year
 
-January to June, or July to December. Command: **Open this half-year**.
+January to June, or July to December. Commands: **Open this/next/previous half-year**.
 
 | Example                   | Nov 13, 2026       | Jan 10, 2027       |
 | ------------------------- | ------------------ | ------------------ |
@@ -108,7 +108,7 @@ January to June, or July to December. Command: **Open this half-year**.
 
 ### Year
 
-A calendar year. Command: **Open this year**.
+A calendar year. Commands: **Open this/next/previous year**.
 
 | Example          | Nov 13, 2026 | Jan 10, 2027 |
 | ---------------- | ------------ | ------------ |
@@ -125,7 +125,7 @@ A calendar year. Command: **Open this year**.
 
 ### Decade
 
-Ten years, from a year ending in 0. Command: **Open this decade**.
+Ten years, from a year ending in 0. Commands: **Open this/next/previous decade**.
 
 | Example             | Nov 13, 2026 | Jan 10, 2027 |
 | ------------------- | ------------ | ------------ |
@@ -143,7 +143,7 @@ Ten years, from a year ending in 0. Command: **Open this decade**.
 
 ### Century
 
-A hundred years: the 21st runs from 2001 to 2100. Command: **Open this century**.
+A hundred years: the 21st runs from 2001 to 2100. Commands: **Open this/next/previous century**.
 
 | Example                      | Nov 13, 2026   | Jan 10, 2027   |
 | ---------------------------- | -------------- | -------------- |
@@ -162,7 +162,7 @@ A hundred years: the 21st runs from 2001 to 2100. Command: **Open this century**
 
 ### Millennium
 
-A thousand years: the 3rd runs from 2001 to 3000. Command: **Open this millennium**.
+A thousand years: the 3rd runs from 2001 to 3000. Commands: **Open this/next/previous millennium**.
 
 | Example                         | Nov 13, 2026     | Jan 10, 2027     |
 | ------------------------------- | ---------------- | ---------------- |
@@ -182,7 +182,7 @@ A thousand years: the 3rd runs from 2001 to 3000. Command: **Open this millenniu
 
 ### Meteorological season
 
-Three whole months: winter is December to February in the north. Command: **Open this meteorological season**.
+Three whole months: winter is December to February in the north. Commands: **Open this/next/previous meteorological season**.
 
 | Example                               | Nov 13, 2026  | Jan 10, 2027          |
 | ------------------------------------- | ------------- | --------------------- |
@@ -205,7 +205,7 @@ Three whole months: winter is December to February in the north. Command: **Open
 
 ### Astronomical season
 
-From an equinox or solstice to the next. Dated in your time zone. Command: **Open this astronomical season**.
+From an equinox or solstice to the next. Dated in your time zone. Commands: **Open this/next/previous astronomical season**.
 
 | Example                               | Nov 13, 2026  | Jan 10, 2027       |
 | ------------------------------------- | ------------- | ------------------ |
@@ -229,7 +229,7 @@ Equinoxes and solstices come from the sun's position, computed with VSOP87 and t
 
 ### Wheel of the Year
 
-Eight festivals: the solstices, the equinoxes, and the days between. Dated in your time zone, for the solstices and equinoxes. Command: **Open this festival of the Wheel of the Year**.
+Eight festivals: the solstices, the equinoxes, and the days between. Dated in your time zone, for the solstices and equinoxes. Commands: **Open this/next/previous festival of the Wheel of the Year**.
 
 | Example                               | Nov 13, 2026      | Jan 10, 2027   |
 | ------------------------------------- | ----------------- | -------------- |
@@ -253,7 +253,7 @@ Imbolc, Beltane, Lughnasadh and Samhain fall on February 1, May 1, August 1 and 
 
 ### Fashion season
 
-Spring-summer and fall-winter, from dates you choose. Command: **Open this fashion season**.
+Spring-summer and fall-winter, from dates you choose. Commands: **Open this/next/previous fashion season**.
 
 Settings: **Spring-summer starts**, `02-01` by default; **Fall-winter starts**, `08-01` by default.
 
@@ -281,7 +281,7 @@ The defaults follow the retail calendar of the National Retail Federation, where
 
 ### Fiscal year
 
-A year from the date you choose. Command: **Open this fiscal year**.
+A year from the date you choose. Commands: **Open this/next/previous fiscal year**.
 
 Settings: **Starts**, `04-01` by default.
 
@@ -299,7 +299,7 @@ Settings: **Starts**, `04-01` by default.
 
 ### Fiscal quarter
 
-Three months, from the start of the fiscal year. Command: **Open this fiscal quarter**.
+Three months, from the start of the fiscal year. Commands: **Open this/next/previous fiscal quarter**.
 
 Settings: **Fiscal year starts**, `04-01` by default.
 
@@ -322,7 +322,7 @@ Settings: **Fiscal year starts**, `04-01` by default.
 
 ### Academic year
 
-A school year, from the date you choose. Command: **Open this academic year**.
+A school year, from the date you choose. Commands: **Open this/next/previous academic year**.
 
 Settings: **Starts**, `09-01` by default.
 
@@ -342,7 +342,7 @@ Settings: **Starts**, `09-01` by default.
 
 ### Sekki
 
-The 24 sekki (二十四節気), about 15 days each, from Risshun in early February. Dated in Japan time. Command: **Open this sekki**.
+The 24 sekki (二十四節気), about 15 days each, from Risshun in early February. Dated in Japan time. Commands: **Open this/next/previous sekki**.
 
 | Example                   | Nov 13, 2026               | Jan 10, 2027       |
 | ------------------------- | -------------------------- | ------------------ |
@@ -367,7 +367,7 @@ Romaji and English from Nippon.com, [Japan's 72 Microseasons](https://www.nippon
 
 ### Kō
 
-The 72 kō (七十二候), about 5 days each, three in every sekki. Dated in Japan time. Command: **Open this kō**.
+The 72 kō (七十二候), about 5 days each, three in every sekki. Dated in Japan time. Commands: **Open this/next/previous kō**.
 
 | Example                           | Nov 13, 2026                 | Jan 10, 2027                    |
 | --------------------------------- | ---------------------------- | ------------------------------- |
@@ -396,7 +396,7 @@ The 72 kō of the 1874 *Ryakuhonreki* (略本暦). Kanji and kana from Japanese 
 
 ### Jiéqì
 
-The 24 jiéqì (节气), about 15 days each, from Lìchūn in early February. Dated in China time (UTC+8). Command: **Open this jiéqì**.
+The 24 jiéqì (节气), about 15 days each, from Lìchūn in early February. Dated in China time (UTC+8). Commands: **Open this/next/previous jiéqì**.
 
 | Example                   | Nov 13, 2026               | Jan 10, 2027      |
 | ------------------------- | -------------------------- | ----------------- |
@@ -421,7 +421,7 @@ Names from English Wikipedia, [Solar term](https://en.wikipedia.org/wiki/Solar_t
 
 ### Zodiac year
 
-From one Lunar New Year to the next, 1901 to 2100. Command: **Open this zodiac year**.
+From one Lunar New Year to the next, 1901 to 2100. Commands: **Open this/next/previous zodiac year**.
 
 | Example                                    | Nov 13, 2026             | Jan 10, 2027             |
 | ------------------------------------------ | ------------------------ | ------------------------ |
@@ -448,7 +448,7 @@ Lunar New Year from the Hong Kong Observatory's [Gregorian-Lunar calendar conver
 
 ### Jeolgi
 
-The 24 jeolgi (절기), about 15 days each, from Ipchun in early February. Dated in Korea time (UTC+9). Command: **Open this jeolgi**.
+The 24 jeolgi (절기), about 15 days each, from Ipchun in early February. Dated in Korea time (UTC+9). Commands: **Open this/next/previous jeolgi**.
 
 | Example                   | Nov 13, 2026               | Jan 10, 2027      |
 | ------------------------- | -------------------------- | ----------------- |
@@ -474,7 +474,7 @@ Names from English Wikipedia, [Solar term](https://en.wikipedia.org/wiki/Solar_t
 
 ### Ṛtu
 
-Six seasons of about two months, from Vasanta in mid-February. Śiśira starts at the winter solstice. Dated in India time (UTC+5:30). Command: **Open this ṛtu**.
+Six seasons of about two months, from Vasanta in mid-February. Śiśira starts at the winter solstice. Dated in India time (UTC+5:30). Commands: **Open this/next/previous ṛtu**.
 
 | Example                               | Nov 13, 2026      | Jan 10, 2027     |
 | ------------------------------------- | ----------------- | ---------------- |

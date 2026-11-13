@@ -4,7 +4,7 @@
 
 Zhami (ჟამი) is a literary Georgian word for time, or an era.
 
-Zhami opens the note for this week, this season, this year, or any other period, and creates it from a template if it doesn't exist yet. Each period you turn on adds a command, like **Open this week**.
+Zhami opens the note for this week, this season, this year, or any other period, and creates it from a template if it doesn't exist yet. Each period you turn on adds three commands, like **Open this week**, **Open next week** and **Open previous week**. Next and previous step from the period note you're looking at, or else from today.
 
 | Group    | Periods                                                                       |
 | -------- | ----------------------------------------------------------------------------- |
