@@ -54,3 +54,24 @@ A sekki template, with its name in kanji and English:
 
 Beginning of winter, November 7 to November 21.
 ```
+
+Any period's template can list the notes made during it, with a [base](https://help.obsidian.md/bases) in the note. `{{start}}` and `{{end}}` put the period's first and last day in its properties, and `this` in the base means the note the base is in:
+
+````markdown
+---
+start: {{start}}
+end: {{end}}
+---
+
+```base
+filters:
+  and:
+    - file.ctime >= this.start
+    - file.ctime < this.end + "1 day"
+views:
+  - type: table
+    name: Made this period
+```
+````
+
+The base in each period's note lists the notes created from its first day to the end of its last. For notes with a date property of their own, like `date`, use `date` instead of `file.ctime`.
