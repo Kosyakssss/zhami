@@ -153,8 +153,9 @@ export class Matcher {
         this.error = "Find needs some text or a token around *";
         return;
       }
-      const pattern = new RegExp(`^${parts.map(escape).join("(.*?)")}$`);
       const candidates = head ? starting(this.starts, head) : starting(this.ends, reverse(tail)).map(reverse);
+      if (!candidates.length) continue;
+      const pattern = new RegExp(`^${parts.map(escape).join("(.*?)")}$`);
       for (const path of candidates) {
         if (this.hits.has(path)) continue;
         const m = pattern.exec(path);

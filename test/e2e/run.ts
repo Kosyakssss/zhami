@@ -130,7 +130,8 @@ ob("dev:errors", "clear");
 
 // Commands exist only for periods that are on.
 await configure({ folder: "Calendar", enabled: { month: false } });
-const ids = ob("commands", "filter=zhami:").split("\n").map((l) => l.split("\t")[0]!.trim()).filter(Boolean).sort();
+// Every command Zhami registered, editor ones included whatever is open.
+const ids = js<string[]>(`return Object.keys(app.commands.commands).filter((id) => id.startsWith("zhami:")).sort();`);
 check(
   "commands for the default periods",
   ids,

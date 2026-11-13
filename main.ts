@@ -163,7 +163,7 @@ const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCa
 // The link to this, the next or the last occurrence of a period, by its
 // note's name today.
 function link(plugin: Zhami, period: Period, word: string): Link[] {
-  const by = WORDS[word];
+  const by = Object.hasOwn(WORDS, word) ? WORDS[word] : undefined;
   if (by === undefined) return [];
   try {
     let instance = plugin.instance(period);
@@ -202,7 +202,7 @@ class LinkSuggest extends EditorSuggest<Link> {
     if (loaded?.["nldates-obsidian"]) return null;
     const before = editor.getLine(cursor.line).slice(0, cursor.ch);
     const m = /(?:^|\s)@(\w+) ([^@]{0,40})$/u.exec(before);
-    if (!m || !(m[1]!.toLowerCase() in WORDS) || !this.matching(m[2]!).length) return null;
+    if (!m || !Object.hasOwn(WORDS, m[1]!.toLowerCase()) || !this.matching(m[2]!).length) return null;
     return { start: { line: cursor.line, ch: cursor.ch - m[1]!.length - m[2]!.length - 2 }, end: cursor, query: `${m[1]} ${m[2]}` };
   }
 
@@ -493,6 +493,8 @@ class ZhamiSettings extends PluginSettingTab {
 class RenamePage extends SettingPage {
   // Bumped to stop the search that's running.
   private run = 0;
+  private timer = 0;
+  private hidden = false;
 
   constructor(
     private plugin: Zhami,
@@ -507,10 +509,10 @@ class RenamePage extends SettingPage {
     containerEl.empty();
     const state = { find: plugin.format(period), to: plugin.format(period), folder: plugin.folder(period) };
     const results = createDiv();
-    let timer = 0;
+    this.hidden = false;
     const refresh = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => this.show(results, state), 150);
+      window.clearTimeout(this.timer);
+      this.timer = window.setTimeout(() => this.show(results, state), 150);
     };
 
     new Setting(containerEl)
@@ -550,6 +552,8 @@ class RenamePage extends SettingPage {
 
   hide() {
     this.run++;
+    this.hidden = true;
+    window.clearTimeout(this.timer);
     super.hide();
   }
 
@@ -557,6 +561,7 @@ class RenamePage extends SettingPage {
   // milliseconds at a time so Obsidian stays responsive, and shows the
   // renames so far.
   show(el: HTMLElement, state: { find: string; to: string; folder: string }) {
+    if (this.hidden) return;
     const run = ++this.run;
     const { app } = this.plugin;
     const vault = app.vault as typeof app.vault & Config;
@@ -605,7 +610,7 @@ class RenamePage extends SettingPage {
       );
     const lists = el.createDiv();
 
-    const finished = () => Boolean(matcher.error) || search.done || matcher.full;
+    const finished = () => Boolean(matcher.error ?? result.error) || search.done || matcher.full;
 
     // The number of matches the renames were last worked out for.
     let decided = -1;
