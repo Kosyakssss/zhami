@@ -7,7 +7,8 @@
     "check": "tsc --noEmit -p .",
     "dev": "bun run build && cp main.js manifest.json styles.css \"$VAULT/.obsidian/plugins/zhami/\"",
     "test": "TZ=UTC bun test",
-    "docs": "TZ=UTC bun scripts/docs.ts"
+    "docs": "TZ=UTC bun scripts/docs.ts",
+    "e2e": "bun run build && bun test/e2e/run.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",
