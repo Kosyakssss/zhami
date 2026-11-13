@@ -1,6 +1,6 @@
 node_modules/
 main.js
-test/zhami-vault/.obsidian/plugins/zhami/
+test/zhami-vault/.obsidian/plugins/
 test/zhami-vault/.obsidian/workspace*.json
 test/zhami-vault/.obsidian/*.json.bak
 test/zhami-vault/.trash/

@@ -2,14 +2,21 @@ import {
   AbstractInputSuggest,
   addIcon,
   App,
+  EditorSuggest,
+  type Editor,
+  type EditorPosition,
+  type EditorSuggestContext,
+  type EditorSuggestTriggerInfo,
   type ButtonComponent,
   moment as obsidianMoment,
   normalizePath,
   Notice,
+  prepareSimpleSearch,
   Plugin,
   PluginSettingTab,
   Setting,
   SettingPage,
+  SuggestModal,
   TFolder,
   type SettingDefinitionItem,
   type TFile,
@@ -35,6 +42,13 @@ export default class Zhami extends Plugin {
     await this.saveSettings();
     for (const period of PERIODS) this.toggleCommand(period);
     this.addSettingTab(new ZhamiSettings(this.app, this));
+    this.registerEditorSuggest(new LinkSuggest(this));
+    this.addCommand({
+      id: "insert-link",
+      name: "Insert link to a period note",
+      icon: ICON,
+      editorCallback: (editor) => new LinkModal(this, editor).open(),
+    });
   }
 
   async saveSettings() {
@@ -132,6 +146,106 @@ export default class Zhami extends Plugin {
       current = current ? `${current}/${part}` : part;
       if (!this.app.vault.getFolderByPath(current)) await this.app.vault.createFolder(current);
     }
+  }
+}
+
+// Links to period notes, typed as @this week, @next sekki or @last month,
+// or picked with a command.
+interface Link {
+  label: string;
+  name: string;
+}
+
+const WORDS: Record<string, -1 | 0 | 1> = { this: 0, next: 1, last: -1, previous: -1 };
+// Lowercase, without accents, so "ko" finds kō.
+const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+// The link to this, the next or the last occurrence of a period, by its
+// note's name today.
+function link(plugin: Zhami, period: Period, word: string): Link[] {
+  const by = WORDS[word];
+  if (by === undefined) return [];
+  try {
+    let instance = plugin.instance(period);
+    if (by === 1) instance = next(period, plugin.context, instance);
+    if (by === -1) instance = previous(period, plugin.context, instance);
+    const { text, errors } = render(plugin.format(period), period, instance);
+    return errors.length ? [] : [{ label: `${word} ${noun(period)}`, name: text }];
+  } catch {
+    return [];
+  }
+}
+
+function renderLink(link: Link, el: HTMLElement) {
+  el.addClass("mod-complex");
+  const content = el.createDiv({ cls: "suggestion-content" });
+  content.createDiv({ cls: "suggestion-title", text: link.label });
+  content.createDiv({ cls: "suggestion-note", text: link.name });
+}
+
+// @ answers only once a space follows its first word, so @today and the
+// like stay with Aloha. Natural Language Dates reads every @ as a date, so
+// with it on, @ stays with it and the command does this instead.
+class LinkSuggest extends EditorSuggest<Link> {
+  constructor(private plugin: Zhami) {
+    super(plugin.app);
+  }
+
+  // The enabled periods with a word in their name starting with `rest`.
+  private matching(rest: string) {
+    const query = ` ${plain(rest)}`;
+    return PERIODS.filter((p) => this.plugin.settings.enabled[p.key] && ` ${plain(noun(p))}`.includes(query));
+  }
+
+  onTrigger(cursor: EditorPosition, editor: Editor): EditorSuggestTriggerInfo | null {
+    const loaded = (this.app as App & { plugins?: { plugins?: Record<string, unknown> } }).plugins?.plugins;
+    if (loaded?.["nldates-obsidian"]) return null;
+    const before = editor.getLine(cursor.line).slice(0, cursor.ch);
+    const m = /(?:^|\s)@(\w+) ([^@]{0,40})$/u.exec(before);
+    if (!m || !(m[1]!.toLowerCase() in WORDS) || !this.matching(m[2]!).length) return null;
+    return { start: { line: cursor.line, ch: cursor.ch - m[1]!.length - m[2]!.length - 2 }, end: cursor, query: `${m[1]} ${m[2]}` };
+  }
+
+  getSuggestions(context: EditorSuggestContext): Link[] {
+    const [word, ...rest] = context.query.split(" ");
+    return this.matching(rest.join(" ")).flatMap((period) => link(this.plugin, period, word!.toLowerCase()));
+  }
+
+  renderSuggestion(link: Link, el: HTMLElement) {
+    renderLink(link, el);
+  }
+
+  selectSuggestion(link: Link) {
+    if (!this.context) return;
+    this.context.editor.replaceRange(`[[${link.name}]]`, this.context.start, this.context.end);
+  }
+}
+
+class LinkModal extends SuggestModal<Link> {
+  private links: Link[];
+
+  constructor(
+    plugin: Zhami,
+    private editor: Editor,
+  ) {
+    super(plugin.app);
+    this.setPlaceholder("This week, next sekki, last month…");
+    this.links = PERIODS.filter((p) => plugin.settings.enabled[p.key]).flatMap((p) =>
+      ["this", "next", "last"].flatMap((word) => link(plugin, p, word)),
+    );
+  }
+
+  getSuggestions(query: string) {
+    const search = prepareSimpleSearch(plain(query));
+    return this.links.filter((l) => search(plain(l.label)));
+  }
+
+  renderSuggestion(link: Link, el: HTMLElement) {
+    renderLink(link, el);
+  }
+
+  onChooseSuggestion(link: Link) {
+    this.editor.replaceSelection(`[[${link.name}]]`);
   }
 }
 

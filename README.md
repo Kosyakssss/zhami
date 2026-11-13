@@ -18,6 +18,8 @@ Zhami opens the note for this week, this season, this year, or any other period,
 
 Week, month, quarter and year are on by default. For daily notes, use Obsidian's core Daily notes plugin.
 
+To link to a period's note as you write, type `@` and a phrase: `@next week` gives `[[2026-W47]]`, `@this sekki` gives `[[Rittō 2026]]`, and `@last month` gives `[[2026-10]]`. The list appears once you type the space after `this`, `next` or `last`, so `@today` stays with plugins like [Aloha](https://github.com/kepano/aloha). With [Natural Language Dates](https://github.com/argenos/nldates-obsidian) on, `@` stays with it; use **Insert link to a period note** instead, which works anywhere.
+
 ## Usage
 
 Open **Settings → Zhami**. Set a folder for new notes, then open a period to turn it on.
@@ -59,6 +61,7 @@ Seasons, sekki, kō, jiéqì, jeolgi and ṛtu start when the sun reaches a long
 bun install
 bun run check   # type check
 bun run test    # tests
+bun run e2e     # check in real Obsidian, with test/zhami-vault open
 bun run build   # build main.js
 bun run docs    # write docs/periods.md
 VAULT=/path/to/vault bun run dev   # build and copy into a vault

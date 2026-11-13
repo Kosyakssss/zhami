@@ -7,7 +7,7 @@ import { join } from "path";
 import moment from "moment";
 import { fill, reference, render } from "../../src/format";
 import { useMoment } from "../../src/moment";
-import { next, PERIODS, previous, type Context, type Period } from "../../src/periods";
+import { next, noun, PERIODS, previous, type Context, type Period } from "../../src/periods";
 
 useMoment(moment);
 const VAULT = "zhami-vault";
@@ -44,6 +44,20 @@ const type = async (input, value) => {
   input.value = value;
   input.dispatchEvent(new Event("input", { bubbles: true }));
   await wait(400);
+};
+// Types into the open note a key at a time, about as fast as a person, and
+// returns what the editor suggests then.
+const typing = async (text) => {
+  const editor = app.workspace.activeEditor.editor;
+  editor.setValue("");
+  editor.focus();
+  for (const ch of text) {
+    const at = editor.posToOffset(editor.getCursor());
+    editor.cm.dispatch({ changes: { from: at, insert: ch }, selection: { anchor: at + 1 }, userEvent: "input.type" });
+    await wait(100);
+  }
+  await wait(200);
+  return [...document.querySelectorAll(".suggestion-container .suggestion-item")].map((i) => i.innerText.replace(/\\s+/g, " ").trim());
 };
 // Waits for Rename notes to finish looking.
 const settle = async () => {
@@ -120,7 +134,7 @@ const ids = ob("commands", "filter=zhami:").split("\n").map((l) => l.split("\t")
 check(
   "commands for the default periods",
   ids,
-  ["quarter", "week", "year"].flatMap((k) => [`zhami:open-${k}`, `zhami:open-next-${k}`, `zhami:open-previous-${k}`]).sort(),
+  ["zhami:insert-link", ...["quarter", "week", "year"].flatMap((k) => [`zhami:open-${k}`, `zhami:open-next-${k}`, `zhami:open-previous-${k}`])].sort(),
 );
 
 // Every period: this, next twice, previous, all named as src names them.
@@ -419,6 +433,81 @@ check(
   js<string[]>(`return rows().map(named).slice(3);`),
   ["No notes match", "1 note is skipped"],
 );
+
+// --- Links ------------------------------------------------------------------
+
+// @next sekki, @last month and so on suggest links to period notes.
+await configure({ folder: "Calendar", enabled: { week: true, month: true, sekki: true, ko: true } });
+ob("dev:cdp", "method=Emulation.setFocusEmulationEnabled", 'params={"enabled":true}');
+// Typing happens in a note of its own, in the Calendar folder the run clears.
+const TYPING = `app.workspace.getLeaf(false).openFile(app.vault.getFileByPath("Calendar/Typing.md") ?? (await app.vault.create("Calendar/Typing.md", "")), { state: { mode: "source" } })`;
+js(`await ${TYPING}; return null;`);
+const sekki = period("sekki");
+const link = (p: Period, by: number) => {
+  const i = p.at(moment(), ctx);
+  return name(p, by === 1 ? next(p, ctx, i) : by === -1 ? previous(p, ctx, i) : i);
+};
+check(
+  "@: every period that's on, after a space",
+  js<string[]>(`return await typing("see @next ");`),
+  PERIODS.filter((p) => ["week", "month", "quarter", "year", "sekki", "ko"].includes(p.key)).map((p) => `next ${noun(p)} ${link(p, 1)}`),
+);
+check("@: narrows by name, without accents", js<string[]>(`return await typing("see @last ko");`), [`last kō ${link(period("ko"), -1)}`]);
+check("@: one word stays with other plugins", js<string[]>(`return await typing("see @next");`), []);
+check(
+  "@: inserts the link",
+  js<string>(`await typing("see @this sekki"); app.workspace.editorSuggest.currentSuggest.suggestions.useSelectedItem(new KeyboardEvent("keydown")); await wait(200); return app.workspace.activeEditor.editor.getValue();`),
+  `see [[${link(sekki, 0)}]]`,
+);
+check(
+  "insert link: the command's picker",
+  js<string>(`
+    const editor = app.workspace.activeEditor.editor;
+    editor.setValue("see ");
+    editor.setCursor({ line: 0, ch: 4 });
+    app.commands.executeCommandById("zhami:insert-link");
+    await wait(300);
+    await type(document.querySelector(".prompt-input"), "next mon");
+    const items = [...document.querySelectorAll(".prompt-results .suggestion-item")].map((i) => i.innerText.replace(/\\s+/g, " ").trim());
+    document.querySelector(".prompt-results .suggestion-item").click();
+    await wait(200);
+    return items.join(" | ") + " → " + editor.getValue();
+  `),
+  `next month ${link(period("month"), 1)} → see [[${link(period("month"), 1)}]]`,
+);
+
+// With Aloha and Natural Language Dates in the test vault, @ works beside
+// them, whichever loads first. They aren't in the repository; put their
+// main.js and manifest.json in .obsidian/plugins/ to check.
+const others = ["aloha", "nldates-obsidian"].filter((id) => existsSync(join(ROOT, ".obsidian/plugins", id, "main.js")));
+for (const order of others.flatMap((id) => [[id, "zhami"], ["zhami", id]])) {
+  const got = js<Record<string, string[]>>(`
+    await app.plugins.loadManifests();
+    for (const id of ${JSON.stringify(others)}) await app.plugins.disablePlugin(id);
+    await app.plugins.disablePlugin("zhami");
+    for (const id of ${JSON.stringify(order)}) await app.plugins.enablePlugin(id);
+    await wait(500);
+    await ${TYPING};
+    const out = {};
+    for (const text of ["see @to", "see @next we", "see @next fr"]) out[text] = await typing(text);
+    app.workspace.activeEditor.editor.setValue("");
+    return out;
+  `);
+  const label = order.join(" then ");
+  check(`${label}: @to is theirs`, got["see @to"], ["Today", "Tomorrow"]);
+  if (order.includes("aloha")) {
+    check(`${label}: @next week is Zhami's`, got["see @next we"], [`next week ${link(week, 1)}`]);
+  } else {
+    // Natural Language Dates reads every @ as a date, so Zhami leaves @ to it.
+    check(`${label}: @next week stays a date`, got["see @next we"], ["next week", "next Wednesday"]);
+    check(`${label}: @next Friday still works`, got["see @next fr"], ["next Friday"]);
+  }
+}
+if (others.length) {
+  js(`for (const id of ${JSON.stringify(others)}) await app.plugins.disablePlugin(id); await app.plugins.enablePlugin("zhami"); return null;`);
+} else {
+  console.log("Aloha and Natural Language Dates aren't in the test vault; skipped checking @ beside them.");
+}
 
 // --- Mobile -----------------------------------------------------------------
 
