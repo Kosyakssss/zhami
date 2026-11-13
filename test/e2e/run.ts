@@ -16,7 +16,7 @@ const DATA = join(ROOT, ".obsidian/plugins/zhami/data.json");
 const SHOTS = join(import.meta.dir, "shots");
 
 function ob(...args: string[]): string {
-  const proc = Bun.spawnSync(["timeout", "-s", "KILL", "30", "obsidian", `vault=${VAULT}`, ...args], { stdout: "pipe", stderr: "pipe" });
+  const proc = Bun.spawnSync(["timeout", "-s", "KILL", "120", "obsidian", `vault=${VAULT}`, ...args], { stdout: "pipe", stderr: "pipe" });
   if (proc.exitCode !== 0 && !proc.stdout.length) throw new Error(`obsidian ${args[0]} failed: ${proc.stderr}`);
   return proc.stdout.toString().trim();
 }
@@ -44,6 +44,12 @@ const type = async (input, value) => {
   input.value = value;
   input.dispatchEvent(new Event("input", { bubbles: true }));
   await wait(400);
+};
+// Waits for Rename notes to finish looking.
+const settle = async () => {
+  const desc = () => rows()[3]?.querySelector(".setting-item-description")?.textContent ?? "";
+  for (let i = 0; i < 1000 && desc().startsWith("Looking through"); i++) await wait(100);
+  return desc();
 };
 `;
 
@@ -99,7 +105,9 @@ cpSync(join(import.meta.dir, "../../styles.css"), join(ROOT, ".obsidian/plugins/
 for (const dir of ["Calendar", "Weeks"]) rmSync(join(ROOT, dir), { recursive: true, force: true });
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS);
-js(`s.close(); app.vault.setConfig("settingsPopoutWindow", false); app.vault.setConfig("alwaysUpdateLinks", true);`);
+// Obsidian slows timers in a window that's in the background; Rename notes
+// searches on them.
+js(`s.close(); app.vault.setConfig("settingsPopoutWindow", false); app.vault.setConfig("alwaysUpdateLinks", true); require("@electron/remote").getCurrentWebContents().setBackgroundThrottling(false);`);
 ob("dev:mobile", "off");
 await sleep(500);
 ob("dev:errors", "clear");
@@ -371,27 +379,38 @@ js(`
   return null;
 `);
 await sleep(500);
-const renamed = js<{ rows: string[]; moves: string[]; after: string[] }>(`
+// It looks through every week there is, as two of the notes aren't weeks'.
+const started = Date.now();
+const renamed = js<{ searched: string; rows: string[]; moves: string[] }>(`
   await goto("Week", "Rename notes");
   await type(rows()[0].querySelector("input"), "GGGG [week] W *");
   await type(rows()[1].querySelector("input"), "GGGG-[W]WW *");
-  const first = { rows: rows().map(named), moves: [...page().querySelectorAll(".zhami-moves li")].map((li) => li.textContent) };
-  return first;
+  const searched = await settle();
+  return { searched, rows: rows().map(named), moves: [...page().querySelectorAll(".zhami-moves li")].map((li) => li.textContent) };
 `);
+console.log(`Rename notes looked through every week in ${((Date.now() - started) / 1000).toFixed(1)} s`);
+check("rename: looks through every week", renamed.searched, "Looked through every week from 1 to 9999.");
 check("rename: wildcard matches one", renamed.moves, [`${old(prev)} trip → ${name(week, prev)} trip`]);
 shot("rename-wildcard");
+js(`app.vault.setConfig("alwaysUpdateLinks", false); return null;`);
 const renaming = js<{ rows: string[]; moves: string[] }>(`
   await type(rows()[0].querySelector("input"), "GGGG [week] W");
   await type(rows()[1].querySelector("input"), "GGGG-[W]WW");
+  await settle();
   return { rows: rows().map(named), moves: [...page().querySelectorAll(".zhami-moves li")].map((li) => li.textContent) };
 `);
-check("rename: plan", renaming.rows.slice(3), ["1 note matches", "1 note is skipped"]);
+check("rename: plan", renaming.rows.slice(3), ["1 note matches", "Update links", "1 note is skipped"]);
 check("rename: moves and clashes", renaming.moves, [
   `${old(prev2)} → ${name(week, prev2)}`,
   `${old()} → ${name(week)}: A note with this name already exists`,
 ]);
 shot("rename");
-js(`rows()[3].querySelector("button").click(); await wait(1000); return null;`);
+check(
+  "rename: turns on updating links",
+  js<[unknown, string[]]>(`row("Update links").querySelector("button").click(); await wait(300); return [app.vault.getConfig("alwaysUpdateLinks"), rows().map(named).slice(3)];`),
+  [true, ["1 note matches", "1 note is skipped"]],
+);
+js(`rows()[3].querySelector("button").click(); await wait(1000); await settle(); return null;`);
 check("rename: renamed", existsSync(join(ROOT, `Calendar/${name(week, prev2)}.md`)), true);
 check("rename: clash left alone", existsSync(join(ROOT, `Calendar/${old()}.md`)), true);
 check("rename: links follow", readFileSync(join(ROOT, "Calendar/Links.md"), "utf8"), `[[${name(week, prev2)}]] and [[${old(prev)} trip]]`);
@@ -430,7 +449,7 @@ await sleep(3000);
 // No errors from Zhami along the way.
 const errors = ob("dev:errors");
 check("no errors", /zhami/i.test(errors) ? errors : "", "");
-js(`s.close(); return null;`);
+js(`s.close(); require("@electron/remote").getCurrentWebContents().setBackgroundThrottling(true); return null;`);
 
 console.log(failures.join("\n"));
 console.log(`\n${passed} pass, ${failures.length} fail`);

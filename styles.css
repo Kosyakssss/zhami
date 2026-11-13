@@ -12,3 +12,17 @@
   font-size: var(--font-ui-small);
   user-select: text;
 }
+
+/* How far Rename notes has looked, of the years 1 to 9999. */
+.zhami-progress {
+  width: 8em;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  overflow: hidden;
+}
+
+.zhami-progress > div {
+  height: 100%;
+  background: var(--interactive-accent);
+}

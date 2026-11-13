@@ -2,6 +2,7 @@ import {
   AbstractInputSuggest,
   addIcon,
   App,
+  type ButtonComponent,
   moment as obsidianMoment,
   normalizePath,
   Notice,
@@ -16,7 +17,7 @@ import {
 import { fill, reference, render } from "./src/format";
 import { moment, useMoment } from "./src/moment";
 import { GROUPS, next, noun, PERIODS, previous, type Context, type Instance, type Period } from "./src/periods";
-import { instances, named, plan } from "./src/rename";
+import { decide, Matcher, named, Search, type Hit } from "./src/rename";
 import { DEFAULTS, load, tidy, type Settings } from "./src/settings";
 
 // ჟ, the first letter of ჟამი, from Noto Sans Georgian (SIL Open Font
@@ -372,9 +373,12 @@ class ZhamiSettings extends PluginSettingTab {
 }
 
 // A page that finds notes by one format and renames them to another. It
-// reads the folder each time it opens, so notes made by hand count too.
+// reads the folder each time, so notes made by hand count too, and looks
+// through every occurrence of the period in the background, nearest first,
+// until each note has matched or there are none left.
 class RenamePage extends SettingPage {
-  private all: Instance[] | undefined;
+  // Bumped to stop the search that's running.
+  private run = 0;
 
   constructor(
     private plugin: Zhami,
@@ -430,65 +434,138 @@ class RenamePage extends SettingPage {
     this.show(results, state);
   }
 
+  hide() {
+    this.run++;
+    super.hide();
+  }
+
+  // Matches the folder's notes as the search finds occurrences, a few
+  // milliseconds at a time so Obsidian stays responsive, and shows the
+  // renames so far.
   show(el: HTMLElement, state: { find: string; to: string; folder: string }) {
+    const run = ++this.run;
     const { app } = this.plugin;
-    el.empty();
-    if (!this.all) {
-      // Listing every occurrence can take a second, for kō; show the page first.
-      new Setting(el).setName("Looking for notes…");
-      window.setTimeout(() => {
-        this.all = instances(this.period, this.plugin.context, moment());
-        this.show(el, state);
-      }, 50);
-      return;
-    }
+    const vault = app.vault as typeof app.vault & Config;
+    const { period } = this;
+    const find = state.find.trim();
+    const to = state.to.trim();
     const folder = normalizePath(state.folder || "/");
     const prefix = folder === "/" ? "" : `${folder}/`;
-    const files = app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(prefix));
-    const paths = files.map((f) => f.path.slice(prefix.length, -3));
-    const result = plan(paths, this.period, this.all, state.find.trim(), state.to.trim(), (p) =>
-      Boolean(app.vault.getAbstractFileByPath(`${prefix}${p}.md`)),
-    );
+    const exists = (path: string) => Boolean(vault.getAbstractFileByPath(`${prefix}${path}.md`));
+    const paths = vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(prefix))
+      .map((f) => f.path.slice(prefix.length, -3));
+    const matcher = new Matcher(period, find, paths);
+    const search = new Search(period, this.plugin.context, moment());
+    let result: ReturnType<typeof decide> = { moves: [], conflicts: [] };
 
-    if (result.error) {
-      new Setting(el).setName(result.error).setClass("mod-warning");
-      return;
-    }
-    const button = new Setting(el)
-      .setName(result.moves.length ? `${notes(result.moves.length)} ${result.moves.length === 1 ? "matches" : "match"}` : "No notes match")
-      .setDesc("Links to them update. If Automatically update internal links is off, Obsidian asks for each note.");
-    if (result.moves.length) {
-      button.addButton((b) =>
-        b
-          .setButtonText(`Rename ${notes(result.moves.length)}`)
-          .setCta()
-          .onClick(async () => {
-            b.setDisabled(true);
-            for (const move of result.moves) {
-              const file = app.vault.getFileByPath(`${prefix}${move.from}.md`);
-              if (!file) continue;
-              const target = normalizePath(`${prefix}${move.to}.md`);
-              await this.plugin.ensureFolder(target.split("/").slice(0, -1).join("/"));
-              await app.fileManager.renameFile(file, target);
-            }
-            new Notice(`Zhami: renamed ${notes(result.moves.length)}`);
-            this.show(el, state);
-          }),
+    el.empty();
+    const status = new Setting(el);
+    const progress = status.controlEl.createDiv({ cls: "zhami-progress" });
+    const bar = progress.createDiv();
+    let button!: ButtonComponent;
+    status.addButton((b) => {
+      button = b.setCta().onClick(async () => {
+        this.run++;
+        button.setDisabled(true);
+        for (const move of result.moves) {
+          const file = vault.getFileByPath(`${prefix}${move.from}.md`);
+          if (!file) continue;
+          const target = normalizePath(`${prefix}${move.to}.md`);
+          await this.plugin.ensureFolder(target.split("/").slice(0, -1).join("/"));
+          await app.fileManager.renameFile(file, target);
+        }
+        new Notice(`Zhami: renamed ${notes(result.moves.length)}`);
+        this.show(el, state);
+      });
+    });
+    const links = new Setting(el)
+      .setName("Update links")
+      .setDesc("Automatically update internal links is off, in Files and links, so Obsidian would ask about links for every note.")
+      .addButton((b) =>
+        b.setButtonText("Turn on").onClick(() => {
+          vault.setConfig("alwaysUpdateLinks", true);
+          draw();
+        }),
       );
-    }
-    const list = el.createEl("ul", { cls: "zhami-moves" });
-    for (const move of result.moves.slice(0, 200)) list.createEl("li").createSpan({ cls: "zhami-token", text: `${move.from} → ${move.to}` });
-    if (result.moves.length > 200) list.createEl("li", { text: `and ${result.moves.length - 200} more` });
-    if (result.conflicts.length) {
-      new Setting(el).setName(`${notes(result.conflicts.length)} ${result.conflicts.length === 1 ? "is" : "are"} skipped`).setHeading();
-      const skipped = el.createEl("ul", { cls: "zhami-moves" });
-      for (const c of result.conflicts) {
-        const li = skipped.createEl("li");
-        li.createSpan({ cls: "zhami-token", text: `${c.from} → ${c.to}` });
-        li.append(`: ${c.reason}`);
+    const lists = el.createDiv();
+
+    const finished = () => Boolean(matcher.error) || search.done || matcher.full;
+
+    // The number of matches the renames were last worked out for.
+    let decided = -1;
+    const draw = () => {
+      if (decided !== matcher.hits.size && !matcher.error) {
+        const hits = paths.flatMap((path) => {
+          const hit = matcher.hits.get(path);
+          return hit ? [[path, hit] as [string, Hit]] : [];
+        });
+        result = decide(hits, period, find, to, exists);
+        decided = matcher.hits.size;
       }
-    }
+      const error = matcher.error ?? result.error;
+      const searching = !finished();
+      const { moves, conflicts } = result;
+      status.setName(
+        error ??
+          (moves.length ? `${notes(moves.length)} ${moves.length === 1 ? "matches" : "match"}` : searching ? "No notes match yet" : "No notes match"),
+      );
+      status.settingEl.toggleClass("mod-warning", Boolean(error));
+      status.setDesc(
+        error
+          ? ""
+          : !paths.length
+            ? "The folder has no notes."
+            : searching
+              ? `Looking through ${search.from} to ${search.to}…`
+              : search.done
+                ? `Looked through every ${noun(period)} from ${search.from} to ${search.to}.`
+                : "Every note in the folder matches.",
+      );
+      progress.toggle(!error && searching);
+      // Years 1 to 9999, the most any period covers.
+      bar.style.width = `${Math.max(2, ((search.to - search.from) / 9998) * 100)}%`;
+      button.buttonEl.toggle(!error && moves.length > 0);
+      button.setButtonText(`Rename ${notes(moves.length)}`);
+      links.settingEl.toggle(!error && moves.length > 0 && !vault.getConfig("alwaysUpdateLinks"));
+
+      lists.empty();
+      if (error) return;
+      const list = lists.createEl("ul", { cls: "zhami-moves" });
+      for (const move of moves.slice(0, 200)) list.createEl("li").createSpan({ cls: "zhami-token", text: `${move.from} → ${move.to}` });
+      if (moves.length > 200) list.createEl("li", { text: `and ${moves.length - 200} more` });
+      if (conflicts.length) {
+        new Setting(lists).setName(`${notes(conflicts.length)} ${conflicts.length === 1 ? "is" : "are"} skipped`).setHeading();
+        const skipped = lists.createEl("ul", { cls: "zhami-moves" });
+        for (const c of conflicts) {
+          const li = skipped.createEl("li");
+          li.createSpan({ cls: "zhami-token", text: `${c.from} → ${c.to}` });
+          li.append(`: ${c.reason}`);
+        }
+      }
+    };
+
+    let drawn = 0;
+    const work = () => {
+      if (run !== this.run) return;
+      const until = performance.now() + 15;
+      while (performance.now() < until && !finished()) matcher.add(search.more(50));
+      const done = finished();
+      if (done || performance.now() - drawn > 250) {
+        draw();
+        drawn = performance.now();
+      }
+      if (!done) window.setTimeout(work);
+    };
+    work();
   }
+}
+
+// Obsidian's own settings, like Automatically update internal links.
+interface Config {
+  getConfig(key: string): unknown;
+  setConfig(key: string, value: unknown): void;
 }
 
 const notes = (n: number) => `${n} ${n === 1 ? "note" : "notes"}`;

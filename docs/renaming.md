@@ -12,9 +12,9 @@ It also works for notes you made by hand, before Zhami or without it.
 
 The page lists every note that matches, with its new name, before anything changes. Select **Rename** to rename them.
 
-Renaming goes through Obsidian, so links to the notes update as with any rename. If **Automatically update internal links** is off, in **Files and links**, Obsidian asks first, once for each note.
+It looks through every occurrence of the period, from the year 1 to 9999, starting at today and working outward, so notes from recent years show up first. A bar shows how far it has got. It stops early once every note in the folder has matched. Through every week takes about 10 seconds, and every kō, at 72 a year, about 25. You can rename what it has found at any time.
 
-It looks for notes from the 100 years before today to the 100 years after, or the 1,000 periods before and after, whichever reaches further: a thousand years of year notes, and every decade, century and millennium.
+Renaming goes through Obsidian, so links to the notes update as with any rename. If **Automatically update internal links** is off, in **Files and links**, Obsidian asks first, once for each note; the page offers to turn it on.
 
 ## Any text: `*`
 
