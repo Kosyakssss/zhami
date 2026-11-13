@@ -2,22 +2,30 @@
 >
 > time; an era.
 
-Zhami opens the note for this week, this quarter, or this year, and creates it from a template if it doesn't exist yet.
+Zhami opens the note for the current period, and creates it from a template if it doesn't exist yet.
 
-It adds three commands:
+Turn on the periods you use. Each one adds a command, like **Open this week**:
 
-- **Open this week**, e.g. `2026-W46`
-- **Open this quarter**, e.g. `2026-Q4`
-- **Open this year**, e.g. `2026`
+| Period | Example | Spans |
+| --- | --- | --- |
+| Week | `2026-W46` | an ISO week, Monday to Sunday |
+| Fortnight | `2026-F23` | two ISO weeks, 1–2, 3–4, and so on |
+| Month | `2026-11` | |
+| Quarter | `2026-Q4` | |
+| Half-year | `2026-H2` | January to June, or July to December |
+| Year | `2026` | |
+| Decade | `2020s` | 2020 to 2029 |
+| Century | `21st century` | 2001 to 2100 |
+| Millennium | `3rd millennium` | 2001 to 3000 |
 
-For daily notes, use Obsidian's core Daily notes plugin.
+Week, month, quarter, and year are on by default. In a year with 53 ISO weeks, the last fortnight is one week long. For daily notes, use Obsidian's core Daily notes plugin.
 
 Zhami (ჟამი) is a literary Georgian word for time, or an era.
 
 ## Settings
 
 - **Folder** for new notes.
-- **Name format** for each period, in the same [Moment.js syntax](https://momentjs.com/docs/#/displaying/format/) as Daily notes. Weeks default to ISO weeks, which start on Monday. A slash creates subfolders, e.g. `YYYY/[W]WW`.
+- **Name format** for each period, in the same [Moment.js syntax](https://momentjs.com/docs/#/displaying/format/) as Daily notes, applied to the first day of the period. `{n}` is the period's number and `{nth}` its ordinal, like `23` and `23rd`; keep them outside square brackets. A slash creates subfolders, e.g. `YYYY/[W]WW`.
 - **Template** for each period.
 
 ## Template variables
