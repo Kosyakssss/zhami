@@ -35,7 +35,7 @@ describe("seasons", () => {
   test("meteorological winter crosses New Year and takes both years", () => {
     expect(at("meteorological", "2026-11-13")).toMatchObject({ name: "Autumn 2026", start: "2026-09-01", end: "2026-11-30" });
     expect(at("meteorological", "2027-01-10")).toMatchObject({ name: "Winter 2026-27", start: "2026-12-01", end: "2027-02-28" });
-    expect(at("meteorological", "2027-01-10", "{{PPPP}} {{years:YYYY-YYYY}}").name).toBe("Winter 2026-2027");
+    expect(at("meteorological", "2027-01-10", "{{PPPP}} YYYY-{{end:YYYY}}").name).toBe("Winter 2026-2027");
     expect(at("meteorological", "2027-01-10", "{{PPP}} YY").name).toBe("Win 26");
   });
 
@@ -63,7 +63,7 @@ describe("work", () => {
     expect(at("fashion", "2026-11-13")).toMatchObject({ name: "FW26", start: "2026-08-01", end: "2027-01-31" });
     expect(at("fashion", "2027-01-31").name).toBe("FW26");
     expect(at("fashion", "2027-02-01").name).toBe("SS27");
-    expect(at("fashion", "2026-11-13", "{{PPPP:autumn}} {{years}}").name).toBe("Autumn-winter 2026-27");
+    expect(at("fashion", "2026-11-13", "{{PPPP:autumn}} YYYY{{end?:-YY}}").name).toBe("Autumn-winter 2026-27");
     const custom = { hemisphere: "north" as const, dates: { "spring-summer": "01-01", "fall-winter": "07-01" } };
     expect(at("fashion", "2026-06-30", undefined, custom)).toMatchObject({ name: "SS26", start: "2026-01-01", end: "2026-06-30" });
   });
@@ -71,7 +71,7 @@ describe("work", () => {
   test("fiscal quarters know their fiscal year", () => {
     expect(at("fiscal-quarter", "2026-11-13")).toMatchObject({ name: "FY2026 Q3", start: "2026-10-01", end: "2026-12-31" });
     expect(at("fiscal-quarter", "2027-02-01").name).toBe("FY2026 Q4");
-    expect(at("fiscal-quarter", "2027-02-01", "[FY]{{fy:YYYY-YY}} [Q]{{P}}").name).toBe("FY2026-27 Q4");
+    expect(at("fiscal-quarter", "2027-02-01", "[FY]{{fy:YYYY}}-{{fyend:YY}} [Q]{{P}}").name).toBe("FY2026-27 Q4");
     expect(at("fiscal-year", "2027-02-01", "[FY]{{end:YYYY}}")).toMatchObject({ name: "FY2027", start: "2026-04-01" });
   });
 

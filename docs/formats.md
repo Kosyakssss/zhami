@@ -39,31 +39,40 @@ Each period has only the tokens that make sense for it. Where moment has a token
 
 Tokens also work inside brackets: `[F{{PP}} of] GGGG` gives `F23 of 2026`.
 
-## Days and years
+## First and last day
 
-Every period has these:
+Moment formats the period's first day. To use its last day too, Zhami adds:
 
-| Token       | Means                                        | Gives        |
-| ----------- | -------------------------------------------- | ------------ |
-| `{{start}}` | First day                                    | `2026-11-09` |
-| `{{end}}`   | Last day                                     | `2026-11-15` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token       | Means     | Gives        |
+| ----------- | --------- | ------------ |
+| `{{start}}` | First day | `2026-11-09` |
+| `{{end}}`   | Last day  | `2026-11-15` |
 
-`{{start}}` and `{{end}}` take any moment format after a colon:
+Both take any moment format after a colon, exactly as written, spaces included:
 
-| Token                       | Gives      |
+| Format                      | Gives      |
 | --------------------------- | ---------- |
 | `{{start:MMM D}}`           | `Nov 9`    |
 | `{{end:dddd}}`              | `Sunday`   |
 | `{{start:MMM D}}–{{end:D}}` | `Nov 9–15` |
 
-`{{years}}` takes two year formats with what goes between them. It shows both years only when a period crosses New Year, like winter:
+### Only where it differs: `?`
 
-| Token                 | Autumn 2026 | Winter 2026-27 |
-| --------------------- | ----------- | -------------- |
-| `{{years}}`           | `2026`      | `2026-27`      |
-| `{{years:YY-YY}}`     | `26`        | `26-27`        |
-| `{{years:YYYY–YYYY}}` | `2026`      | `2026–2027`    |
+`{{end?:FORMAT}}` gives the last day only where it looks different from the first day in that format. Otherwise it gives nothing.
+
+It's for periods that sometimes cross New Year, like seasons. You write both years, so you choose how each looks:
+
+| Format                             | Autumn 2026    | Winter 2026–27        |
+| ---------------------------------- | -------------- | --------------------- |
+| `{{PPPP}} YYYY{{end?:-YY}}`        | `Autumn 2026`  | `Winter 2026-27`      |
+| `{{PPPP}} YYYY{{end?:-YYYY}}`      | `Autumn 2026`  | `Winter 2026-2027`    |
+| `{{PPPP}} YY{{end?:-YY}}`          | `Autumn 26`    | `Winter 26-27`        |
+| `{{PPPP}} YYYY{{end?:[ to ]YYYY}}` | `Autumn 2026`  | `Winter 2026 to 2027` |
+| `{{PPPP}} YY-{{end:YY}}`           | `Autumn 26-26` | `Winter 26-27`        |
+
+The last one has no `?`, so it always shows both years.
+
+It works for anything, not just years: `{{start:MMM D}}–{{end?:MMM }}{{end:D}}` gives `Nov 9–15`, and `Nov 30–Dec 6` for a week that crosses months.
 
 ## Folders
 

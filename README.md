@@ -33,19 +33,19 @@ Each period's page has:
 
 Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Daily notes do. Where moment has no token, Zhami adds one in double braces. On November 13, 2026:
 
-| Period         | Format                    | Gives          |
-| -------------- | ------------------------- | -------------- |
-| Week           | `GGGG-[W]WW`              | `2026-W46`     |
-| Fortnight      | `GGGG-[F]{{PP}}`          | `2026-F23`     |
-| Season         | `{{PPPP}} {{years}}`      | `Autumn 2026`  |
-| Fashion season | `{{PPP}}YY`               | `FW26`         |
-| Sekki          | `{{PPPP}} {{PPPP:kanji}}` | `Rittō 立冬`   |
-| Century        | `{{Po}} [century]`        | `21st century` |
+| Period         | Format                      | Gives          |
+| -------------- | --------------------------- | -------------- |
+| Week           | `GGGG-[W]WW`                | `2026-W46`     |
+| Fortnight      | `GGGG-[F]{{PP}}`            | `2026-F23`     |
+| Season         | `{{PPPP}} YYYY{{end?:-YY}}` | `Autumn 2026`  |
+| Fashion season | `{{PPP}}YY`                 | `FW26`         |
+| Sekki          | `{{PPPP}} {{PPPP:kanji}}`   | `Rittō 立冬`   |
+| Century        | `{{Po}} [century]`          | `21st century` |
 
 ## Documentation
 
 - [Periods](docs/periods.md): every period, its formats and tokens, and sources.
-- [Name formats](docs/formats.md): moment, Zhami's tokens, years and folders.
+- [Name formats](docs/formats.md): moment, Zhami's tokens, first and last days, folders.
 - [Templates](docs/templates.md): variables for new notes.
 - [Rename notes](docs/renaming.md): renaming notes to a new format.
 

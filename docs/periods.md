@@ -4,7 +4,7 @@
 
 Every period Zhami knows. For each: example formats, and the tokens it understands with what each gives. Settings show the same tables, for today. [Name formats](formats.md) explains how tokens combine.
 
-Moment's tokens, like `YYYY` and `MMMM`, work for every period. The tables list the ones that matter for it. `{{start}}`, `{{end}}` and `{{years}}` take a format after a colon, like `{{start:MMM D}}` or `{{years:YY-YY}}`.
+Moment's tokens, like `YYYY` and `MMMM`, work for every period. The tables list the ones that matter for it. `{{start}}` and `{{end}}` take any moment format after a colon, like `{{start:MMM D}}`. See [Name formats](formats.md#first-and-last-day).
 
 ## Calendar
 
@@ -19,15 +19,15 @@ An ISO week, Monday to Sunday. Command: **Open this week**.
 | `{{start:MMM D}}–{{end:D}}` | `Nov 9–15`     | `Jan 4–10`    |
 | `GGGG/[W]WW`                | `2026/W46`     | `2027/W01`    |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `W`         | Week of the ISO year, 1 to 53                | `46`         |
-| `WW`        | W with two digits                            | `46`         |
-| `Wo`        | W as an ordinal                              | `46th`       |
-| `GGGG`      | ISO year. Use it with weeks instead of YYYY  | `2026`       |
-| `{{start}}` | First day                                    | `2026-11-09` |
-| `{{end}}`   | Last day                                     | `2026-11-15` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `W`              | Week of the ISO year, 1 to 53                                     | `46`         |
+| `WW`             | W with two digits                                                 | `46`         |
+| `Wo`             | W as an ordinal                                                   | `46th`       |
+| `GGGG`           | ISO year. Use it with weeks instead of YYYY                       | `2026`       |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-11-09` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-11-15` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Fortnight
 
@@ -39,15 +39,15 @@ Two ISO weeks: 1 and 2, 3 and 4, and so on. Command: **Open this fortnight**.
 | `GGGG [fortnight] {{P}}`        | `2026 fortnight 23` | `2027 fortnight 1` |
 | `{{start:MMM D}}–{{end:MMM D}}` | `Nov 2–Nov 15`      | `Jan 4–Jan 17`     |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `GGGG`      | ISO year                                     | `2026`       |
-| `{{P}}`     | Fortnight of the ISO year, 1 to 27           | `23`         |
-| `{{Po}}`    | `{{P}}` as an ordinal                        | `23rd`       |
-| `{{PP}}`    | `{{P}}` with two digits                      | `23`         |
-| `{{start}}` | First day                                    | `2026-11-02` |
-| `{{end}}`   | Last day                                     | `2026-11-15` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `GGGG`           | ISO year                                                          | `2026`       |
+| `{{P}}`          | Fortnight of the ISO year, 1 to 27                                | `23`         |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `23rd`       |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `23`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-11-02` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-11-15` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Month
 
@@ -59,15 +59,15 @@ A calendar month. Command: **Open this month**.
 | `MMMM YYYY`         | `November 2026`    | `January 2027`    |
 | `YYYY/MM MMMM`      | `2026/11 November` | `2027/01 January` |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `M`         | Month of the year, 1 to 12                   | `11`         |
-| `MM`        | M with two digits                            | `11`         |
-| `MMM`       | Short name                                   | `Nov`        |
-| `MMMM`      | Name                                         | `November`   |
-| `{{start}}` | First day                                    | `2026-11-01` |
-| `{{end}}`   | Last day                                     | `2026-11-30` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `M`              | Month of the year, 1 to 12                                        | `11`         |
+| `MM`             | M with two digits                                                 | `11`         |
+| `MMM`            | Short name                                                        | `Nov`        |
+| `MMMM`           | Name                                                              | `November`   |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-11-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-11-30` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Quarter
 
@@ -79,13 +79,13 @@ Three calendar months, from January, April, July and October. Command: **Open th
 | `[Q]Q YYYY`           | `Q4 2026`          | `Q1 2027`          |
 | `Qo [quarter] YYYY`   | `4th quarter 2026` | `1st quarter 2027` |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `Q`         | Quarter of the year, 1 to 4                  | `4`          |
-| `Qo`        | Q as an ordinal                              | `4th`        |
-| `{{start}}` | First day                                    | `2026-10-01` |
-| `{{end}}`   | Last day                                     | `2026-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `Q`              | Quarter of the year, 1 to 4                                       | `4`          |
+| `Qo`             | Q as an ordinal                                                   | `4th`        |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-10-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Half-year
 
@@ -97,14 +97,14 @@ January to June, or July to December. Command: **Open this half-year**.
 | `{{Po}} [half of] YYYY`   | `2nd half of 2026` | `1st half of 2027` |
 | `YYYY [H]{{P}}`           | `2026 H2`          | `2027 H1`          |
 
-| Token       | Means                                         | Nov 13, 2026 |
-| ----------- | --------------------------------------------- | ------------ |
-| `{{P}}`     | Half of the year: 1 from January, 2 from July | `2`          |
-| `{{Po}}`    | `{{P}}` as an ordinal                         | `2nd`        |
-| `{{PP}}`    | `{{P}}` with two digits                       | `02`         |
-| `{{start}}` | First day                                     | `2026-07-01` |
-| `{{end}}`   | Last day                                      | `2026-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year  | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Half of the year: 1 from January, 2 from July                     | `2`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `2nd`        |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `02`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-07-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Year
 
@@ -115,31 +115,31 @@ A calendar year. Command: **Open this year**.
 | `YYYY` (default) | `2026`       | `2027`       |
 | `[Year ]YYYY`    | `Year 2026`  | `Year 2027`  |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `YYYY`      | Year                                         | `2026`       |
-| `YY`        | Year with two digits                         | `26`         |
-| `{{start}}` | First day                                    | `2026-01-01` |
-| `{{end}}`   | Last day                                     | `2026-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `YYYY`           | Year                                                              | `2026`       |
+| `YY`             | Year with two digits                                              | `26`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-01-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Decade
 
 Ten years, from a year ending in 0. Command: **Open this decade**.
 
-| Example               | Nov 13, 2026 | Jan 10, 2027 |
-| --------------------- | ------------ | ------------ |
-| `YYYY[s]` (default)   | `2020s`      | `2020s`      |
-| `[The ]YY[s]`         | `The 20s`    | `The 20s`    |
-| `{{years:YYYY-YYYY}}` | `2020-2029`  | `2020-2029`  |
+| Example             | Nov 13, 2026 | Jan 10, 2027 |
+| ------------------- | ------------ | ------------ |
+| `YYYY[s]` (default) | `2020s`      | `2020s`      |
+| `[The ]YY[s]`       | `The 20s`    | `The 20s`    |
+| `YYYY-{{end:YYYY}}` | `2020-2029`  | `2020-2029`  |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `YYYY[s]`   | First year, with an s                        | `2020s`      |
-| `YY[s]`     | First year with two digits, with an s        | `20s`        |
-| `{{start}}` | First day                                    | `2020-01-01` |
-| `{{end}}`   | Last day                                     | `2029-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2020-29`    |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `YYYY[s]`        | First year, with an s                                             | `2020s`      |
+| `YY[s]`          | First year with two digits, with an s                             | `20s`        |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2020-01-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2029-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | `-2029`      |
 
 ### Century
 
@@ -149,16 +149,16 @@ A hundred years: the 21st runs from 2001 to 2100. Command: **Open this century**
 | ---------------------------- | -------------- | -------------- |
 | `{{Po}} [century]` (default) | `21st century` | `21st century` |
 | `[Century ]{{P}}`            | `Century 21`   | `Century 21`   |
-| `{{years:YYYY-YYYY}}`        | `2001-2100`    | `2001-2100`    |
+| `YYYY-{{end:YYYY}}`          | `2001-2100`    | `2001-2100`    |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `{{P}}`     | Century, counted from year 1                 | `21`         |
-| `{{Po}}`    | `{{P}}` as an ordinal                        | `21st`       |
-| `{{PP}}`    | `{{P}}` with two digits                      | `21`         |
-| `{{start}}` | First day                                    | `2001-01-01` |
-| `{{end}}`   | Last day                                     | `2100-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2001-2100`  |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Century, counted from year 1                                      | `21`         |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `21st`       |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `21`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2001-01-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2100-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | `-2100`      |
 
 ### Millennium
 
@@ -169,14 +169,14 @@ A thousand years: the 3rd runs from 2001 to 3000. Command: **Open this millenniu
 | `{{Po}} [millennium]` (default) | `3rd millennium` | `3rd millennium` |
 | `[Millennium ]{{P}}`            | `Millennium 3`   | `Millennium 3`   |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `{{P}}`     | Millennium, counted from year 1              | `3`          |
-| `{{Po}}`    | `{{P}}` as an ordinal                        | `3rd`        |
-| `{{PP}}`    | `{{P}}` with two digits                      | `03`         |
-| `{{start}}` | First day                                    | `2001-01-01` |
-| `{{end}}`   | Last day                                     | `3000-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2001-3000`  |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Millennium, counted from year 1                                   | `3`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `3rd`        |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `03`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2001-01-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `3000-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | `-3000`      |
 
 ## Seasons
 
@@ -184,46 +184,46 @@ A thousand years: the 3rd runs from 2001 to 3000. Command: **Open this millenniu
 
 Three whole months: winter is December to February in the north. Command: **Open this meteorological season**.
 
-| Example                             | Nov 13, 2026  | Jan 10, 2027       |
-| ----------------------------------- | ------------- | ------------------ |
-| `{{PPPP}} {{years}}` (default)      | `Autumn 2026` | `Winter 2026-27`   |
-| `{{PPPP}} {{years:YY-YY}}`          | `Autumn 26`   | `Winter 26-27`     |
-| `{{PPPP:fall}} {{years:YYYY-YYYY}}` | `Fall 2026`   | `Winter 2026-2027` |
-| `{{PPP}} YY`                        | `Aut 26`      | `Win 26`           |
+| Example                               | Nov 13, 2026  | Jan 10, 2027          |
+| ------------------------------------- | ------------- | --------------------- |
+| `{{PPPP}} YYYY{{end?:-YY}}` (default) | `Autumn 2026` | `Winter 2026-27`      |
+| `{{PPPP}} YY{{end?:-YY}}`             | `Autumn 26`   | `Winter 26-27`        |
+| `{{PPPP}} YYYY{{end?:[ to ]YYYY}}`    | `Autumn 2026` | `Winter 2026 to 2027` |
+| `{{PPP}} YY`                          | `Aut 26`      | `Win 26`              |
 
-| Token           | Means                                        | Nov 13, 2026 |
-| --------------- | -------------------------------------------- | ------------ |
-| `{{P}}`         | Season of the year, 1 to 4, from March       | `3`          |
-| `{{Po}}`        | `{{P}}` as an ordinal                        | `3rd`        |
-| `{{PP}}`        | `{{P}}` with two digits                      | `03`         |
-| `{{PPPP}}`      | Spring, Summer, Autumn or Winter             | `Autumn`     |
-| `{{PPPP:fall}}` | Spring, Summer, Fall or Winter               | `Fall`       |
-| `{{PPP}}`       | Spr, Sum, Aut or Win                         | `Aut`        |
-| `{{start}}`     | First day                                    | `2026-09-01` |
-| `{{end}}`       | Last day                                     | `2026-11-30` |
-| `{{years}}`     | Year, or both years when it crosses New Year | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Season of the year, 1 to 4, from March                            | `3`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `3rd`        |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `03`         |
+| `{{PPPP}}`       | Spring, Summer, Autumn or Winter                                  | `Autumn`     |
+| `{{PPPP:fall}}`  | Spring, Summer, Fall or Winter                                    | `Fall`       |
+| `{{PPP}}`        | Spr, Sum, Aut or Win                                              | `Aut`        |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-09-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-11-30` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 ### Astronomical season
 
 From an equinox or solstice to the next. Dated in your time zone. Command: **Open this astronomical season**.
 
-| Example                             | Nov 13, 2026  | Jan 10, 2027       |
-| ----------------------------------- | ------------- | ------------------ |
-| `{{PPPP}} {{years}}` (default)      | `Autumn 2026` | `Winter 2026-27`   |
-| `{{PPPP}} {{years:YY-YY}}`          | `Autumn 26`   | `Winter 26-27`     |
-| `{{PPPP:fall}} {{years:YYYY-YYYY}}` | `Fall 2026`   | `Winter 2026-2027` |
+| Example                               | Nov 13, 2026  | Jan 10, 2027       |
+| ------------------------------------- | ------------- | ------------------ |
+| `{{PPPP}} YYYY{{end?:-YY}}` (default) | `Autumn 2026` | `Winter 2026-27`   |
+| `{{PPPP:fall}} YYYY{{end?:-YYYY}}`    | `Fall 2026`   | `Winter 2026-2027` |
+| `{{PPPP}} YY{{end?:-YY}}`             | `Autumn 26`   | `Winter 26-27`     |
 
-| Token           | Means                                              | Nov 13, 2026 |
-| --------------- | -------------------------------------------------- | ------------ |
-| `{{P}}`         | Season of the year, 1 to 4, from the March equinox | `3`          |
-| `{{Po}}`        | `{{P}}` as an ordinal                              | `3rd`        |
-| `{{PP}}`        | `{{P}}` with two digits                            | `03`         |
-| `{{PPPP}}`      | Spring, Summer, Autumn or Winter                   | `Autumn`     |
-| `{{PPPP:fall}}` | Spring, Summer, Fall or Winter                     | `Fall`       |
-| `{{PPP}}`       | Spr, Sum, Aut or Win                               | `Aut`        |
-| `{{start}}`     | First day                                          | `2026-09-23` |
-| `{{end}}`       | Last day                                           | `2026-12-20` |
-| `{{years}}`     | Year, or both years when it crosses New Year       | `2026`       |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Season of the year, 1 to 4, from the March equinox                | `3`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `3rd`        |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `03`         |
+| `{{PPPP}}`       | Spring, Summer, Autumn or Winter                                  | `Autumn`     |
+| `{{PPPP:fall}}`  | Spring, Summer, Fall or Winter                                    | `Fall`       |
+| `{{PPP}}`        | Spr, Sum, Aut or Win                                              | `Aut`        |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-09-23` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-12-20` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
 
 Equinoxes and solstices come from the sun's position, computed with VSOP87 and the methods in Jean Meeus, *Astronomical Algorithms*.
 
@@ -231,21 +231,21 @@ Equinoxes and solstices come from the sun's position, computed with VSOP87 and t
 
 Eight festivals: the solstices, the equinoxes, and the days between. Dated in your time zone, for the solstices and equinoxes. Command: **Open this festival of the Wheel of the Year**.
 
-| Example                        | Nov 13, 2026      | Jan 10, 2027   |
-| ------------------------------ | ----------------- | -------------- |
-| `{{PPPP}} {{years}}` (default) | `Samhain 2026`    | `Yule 2026-27` |
-| `YYYY {{PPPP}}`                | `2026 Samhain`    | `2026 Yule`    |
-| `{{PP}} {{PPPP}} YYYY`         | `01 Samhain 2026` | `02 Yule 2026` |
+| Example                               | Nov 13, 2026      | Jan 10, 2027   |
+| ------------------------------------- | ----------------- | -------------- |
+| `{{PPPP}} YYYY{{end?:-YY}}` (default) | `Samhain 2026`    | `Yule 2026-27` |
+| `YYYY {{PPPP}}`                       | `2026 Samhain`    | `2026 Yule`    |
+| `{{PP}} {{PPPP}} YYYY`                | `01 Samhain 2026` | `02 Yule 2026` |
 
-| Token       | Means                                                              | Nov 13, 2026 |
-| ----------- | ------------------------------------------------------------------ | ------------ |
-| `{{P}}`     | Festival of the year, 1 to 8, from Samhain                         | `1`          |
-| `{{Po}}`    | `{{P}}` as an ordinal                                              | `1st`        |
-| `{{PP}}`    | `{{P}}` with two digits                                            | `01`         |
-| `{{PPPP}}`  | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh or Mabon | `Samhain`    |
-| `{{start}}` | First day                                                          | `2026-11-01` |
-| `{{end}}`   | Last day                                                           | `2026-12-20` |
-| `{{years}}` | Year, or both years when it crosses New Year                       | `2026`       |
+| Token            | Means                                                              | Nov 13, 2026 |
+| ---------------- | ------------------------------------------------------------------ | ------------ |
+| `{{P}}`          | Festival of the year, 1 to 8, from Samhain                         | `1`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                              | `1st`        |
+| `{{PP}}`         | `{{P}}` with two digits                                            | `01`         |
+| `{{PPPP}}`       | Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh or Mabon | `Samhain`    |
+| `{{start}}`      | First day. Takes a moment format after a colon                     | `2026-11-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                      | `2026-12-20` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format  | nothing      |
 
 Imbolc, Beltane, Lughnasadh and Samhain fall on February 1, May 1, August 1 and November 1, their traditional dates. Ostara, Litha, Mabon and Yule are the equinoxes and solstices. In the southern hemisphere, the festivals move by half a year: Yule is at the June solstice.
 
@@ -257,25 +257,25 @@ Spring-summer and fall-winter, from dates you choose. Command: **Open this fashi
 
 Settings: **Spring-summer starts**, `02-01` by default; **Fall-winter starts**, `08-01` by default.
 
-| Example               | Nov 13, 2026          | Jan 10, 2027          |
-| --------------------- | --------------------- | --------------------- |
-| `{{PPP}}YY` (default) | `FW26`                | `FW26`                |
-| `{{PPPP}} {{years}}`  | `Fall-winter 2026-27` | `Fall-winter 2026-27` |
-| `{{PPP:autumn}}YY`    | `AW26`                | `AW26`                |
-| `YYYY {{PPP}}`        | `2026 FW`             | `2026 FW`             |
+| Example                     | Nov 13, 2026          | Jan 10, 2027          |
+| --------------------------- | --------------------- | --------------------- |
+| `{{PPP}}YY` (default)       | `FW26`                | `FW26`                |
+| `{{PPPP}} YYYY{{end?:-YY}}` | `Fall-winter 2026-27` | `Fall-winter 2026-27` |
+| `{{PPP:autumn}}YY`          | `AW26`                | `AW26`                |
+| `YYYY {{PPP}}`              | `2026 FW`             | `2026 FW`             |
 
-| Token             | Means                                        | Nov 13, 2026    |
-| ----------------- | -------------------------------------------- | --------------- |
-| `{{P}}`           | 1 for spring-summer, 2 for fall-winter       | `2`             |
-| `{{Po}}`          | `{{P}}` as an ordinal                        | `2nd`           |
-| `{{PP}}`          | `{{P}}` with two digits                      | `02`            |
-| `{{PPPP}}`        | Spring-summer or Fall-winter                 | `Fall-winter`   |
-| `{{PPPP:autumn}}` | Spring-summer or Autumn-winter               | `Autumn-winter` |
-| `{{PPP}}`         | SS or FW                                     | `FW`            |
-| `{{PPP:autumn}}`  | SS or AW                                     | `AW`            |
-| `{{start}}`       | First day                                    | `2026-08-01`    |
-| `{{end}}`         | Last day                                     | `2027-01-31`    |
-| `{{years}}`       | Year, or both years when it crosses New Year | `2026-27`       |
+| Token             | Means                                                             | Nov 13, 2026    |
+| ----------------- | ----------------------------------------------------------------- | --------------- |
+| `{{P}}`           | 1 for spring-summer, 2 for fall-winter                            | `2`             |
+| `{{Po}}`          | `{{P}}` as an ordinal                                             | `2nd`           |
+| `{{PP}}`          | `{{P}}` with two digits                                           | `02`            |
+| `{{PPPP}}`        | Spring-summer or Fall-winter                                      | `Fall-winter`   |
+| `{{PPPP:autumn}}` | Spring-summer or Autumn-winter                                    | `Autumn-winter` |
+| `{{PPP}}`         | SS or FW                                                          | `FW`            |
+| `{{PPP:autumn}}`  | SS or AW                                                          | `AW`            |
+| `{{start}}`       | First day. Takes a moment format after a colon                    | `2026-08-01`    |
+| `{{end}}`         | Last day. Takes a moment format after a colon                     | `2027-01-31`    |
+| `{{end?:-YYYY}}`  | Last day, only where it differs from the first day in that format | `-2027`         |
 
 The defaults follow the retail calendar of the National Retail Federation, where spring-summer runs from February to July and fall-winter from August to January. Brands differ, so both start dates are settings.
 
@@ -285,17 +285,17 @@ A year from the date you choose. Command: **Open this fiscal year**.
 
 Settings: **Starts**, `04-01` by default.
 
-| Example                 | Nov 13, 2026 | Jan 10, 2027 |
-| ----------------------- | ------------ | ------------ |
-| `[FY]YYYY` (default)    | `FY2026`     | `FY2026`     |
-| `[FY]{{end:YYYY}}`      | `FY2027`     | `FY2027`     |
-| `[FY]{{years:YYYY-YY}}` | `FY2026-27`  | `FY2026-27`  |
+| Example               | Nov 13, 2026 | Jan 10, 2027 |
+| --------------------- | ------------ | ------------ |
+| `[FY]YYYY` (default)  | `FY2026`     | `FY2026`     |
+| `[FY]{{end:YYYY}}`    | `FY2027`     | `FY2027`     |
+| `[FY]YYYY-{{end:YY}}` | `FY2026-27`  | `FY2026-27`  |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `{{start}}` | First day                                    | `2026-04-01` |
-| `{{end}}`   | Last day                                     | `2027-03-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026-27`    |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-04-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2027-03-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | `-2027`      |
 
 ### Fiscal quarter
 
@@ -303,21 +303,22 @@ Three months, from the start of the fiscal year. Command: **Open this fiscal qua
 
 Settings: **Fiscal year starts**, `04-01` by default.
 
-| Example                              | Nov 13, 2026   | Jan 10, 2027   |
-| ------------------------------------ | -------------- | -------------- |
-| `[FY]{{fy:YYYY}} [Q]{{P}}` (default) | `FY2026 Q3`    | `FY2026 Q4`    |
-| `[FY]{{fy:YY}}-[Q]{{P}}`             | `FY26-Q3`      | `FY26-Q4`      |
-| `[FY]{{fy:YYYY-YY}} [Q]{{P}}`        | `FY2026-27 Q3` | `FY2026-27 Q4` |
+| Example                                 | Nov 13, 2026   | Jan 10, 2027   |
+| --------------------------------------- | -------------- | -------------- |
+| `[FY]{{fy:YYYY}} [Q]{{P}}` (default)    | `FY2026 Q3`    | `FY2026 Q4`    |
+| `[FY]{{fy:YY}}-[Q]{{P}}`                | `FY26-Q3`      | `FY26-Q4`      |
+| `[FY]{{fy:YYYY}}-{{fyend:YY}} [Q]{{P}}` | `FY2026-27 Q3` | `FY2026-27 Q4` |
 
-| Token       | Means                                               | Nov 13, 2026 |
-| ----------- | --------------------------------------------------- | ------------ |
-| `{{P}}`     | Quarter of the fiscal year, 1 to 4                  | `3`          |
-| `{{Po}}`    | `{{P}}` as an ordinal                               | `3rd`        |
-| `{{PP}}`    | `{{P}}` with two digits                             | `03`         |
-| `{{start}}` | First day                                           | `2026-10-01` |
-| `{{end}}`   | Last day                                            | `2026-12-31` |
-| `{{years}}` | Year, or both years when it crosses New Year        | `2026`       |
-| `{{fy}}`    | Fiscal year, or both years when it crosses New Year | `2026-27`    |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`          | Quarter of the fiscal year, 1 to 4                                | `3`          |
+| `{{Po}}`         | `{{P}}` as an ordinal                                             | `3rd`        |
+| `{{PP}}`         | `{{P}}` with two digits                                           | `03`         |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-10-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2026-12-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | nothing      |
+| `{{fy:YYYY}}`    | First day of the fiscal year                                      | `2026`       |
+| `{{fyend:YYYY}}` | Last day of the fiscal year                                       | `2027`       |
 
 ### Academic year
 
@@ -325,17 +326,17 @@ A school year, from the date you choose. Command: **Open this academic year**.
 
 Settings: **Starts**, `09-01` by default.
 
-| Example                | Nov 13, 2026 | Jan 10, 2027 |
-| ---------------------- | ------------ | ------------ |
-| `{{years}}` (default)  | `2026-27`    | `2026-27`    |
-| `{{years:YYYY-YYYY}}`  | `2026-2027`  | `2026-2027`  |
-| `[AY ]{{years:YY-YY}}` | `AY 26-27`   | `AY 26-27`   |
+| Example                     | Nov 13, 2026 | Jan 10, 2027 |
+| --------------------------- | ------------ | ------------ |
+| `YYYY-{{end:YY}}` (default) | `2026-27`    | `2026-27`    |
+| `YYYY-{{end:YYYY}}`         | `2026-2027`  | `2026-2027`  |
+| `[AY ]YY-{{end:YY}}`        | `AY 26-27`   | `AY 26-27`   |
 
-| Token       | Means                                        | Nov 13, 2026 |
-| ----------- | -------------------------------------------- | ------------ |
-| `{{start}}` | First day                                    | `2026-09-01` |
-| `{{end}}`   | Last day                                     | `2027-08-31` |
-| `{{years}}` | Year, or both years when it crosses New Year | `2026-27`    |
+| Token            | Means                                                             | Nov 13, 2026 |
+| ---------------- | ----------------------------------------------------------------- | ------------ |
+| `{{start}}`      | First day. Takes a moment format after a colon                    | `2026-09-01` |
+| `{{end}}`        | Last day. Takes a moment format after a colon                     | `2027-08-31` |
+| `{{end?:-YYYY}}` | Last day, only where it differs from the first day in that format | `-2027`      |
 
 ## Japan
 
@@ -350,17 +351,17 @@ The 24 sekki (二十四節気), about 15 days each, from Risshun in early Februa
 | `{{PPPP:english}} YYYY`   | `Beginning of winter 2026` | `Lesser cold 2027` |
 | `YYYY-{{PP}} {{PPPP}}`    | `2026-19 Rittō`            | `2027-23 Shōkan`   |
 
-| Token              | Means                                        | Nov 13, 2026          |
-| ------------------ | -------------------------------------------- | --------------------- |
-| `{{P}}`            | Sekki of the year, 1 to 24, from Risshun     | `19`                  |
-| `{{Po}}`           | `{{P}}` as an ordinal                        | `19th`                |
-| `{{PP}}`           | `{{P}}` with two digits                      | `19`                  |
-| `{{PPPP}}`         | Name in romaji                               | `Rittō`               |
-| `{{PPPP:kanji}}`   | Name in kanji                                | `立冬`                |
-| `{{PPPP:english}}` | Name in English                              | `Beginning of winter` |
-| `{{start}}`        | First day                                    | `2026-11-07`          |
-| `{{end}}`          | Last day                                     | `2026-11-21`          |
-| `{{years}}`        | Year, or both years when it crosses New Year | `2026`                |
+| Token              | Means                                                             | Nov 13, 2026          |
+| ------------------ | ----------------------------------------------------------------- | --------------------- |
+| `{{P}}`            | Sekki of the year, 1 to 24, from Risshun                          | `19`                  |
+| `{{Po}}`           | `{{P}}` as an ordinal                                             | `19th`                |
+| `{{PP}}`           | `{{P}}` with two digits                                           | `19`                  |
+| `{{PPPP}}`         | Name in romaji                                                    | `Rittō`               |
+| `{{PPPP:kanji}}`   | Name in kanji                                                     | `立冬`                |
+| `{{PPPP:english}}` | Name in English                                                   | `Beginning of winter` |
+| `{{start}}`        | First day. Takes a moment format after a colon                    | `2026-11-07`          |
+| `{{end}}`          | Last day. Takes a moment format after a colon                     | `2026-11-21`          |
+| `{{end?:-YYYY}}`   | Last day, only where it differs from the first day in that format | nothing               |
 
 Romaji and English from Nippon.com, [Japan's 72 Microseasons](https://www.nippon.com/en/features/h00124/). A sekki starts when the sun reaches its longitude, every 15° from 315°, dated in Japan time, as the National Astronomical Observatory of Japan does.
 
@@ -375,19 +376,19 @@ The 72 kō (七十二候), about 5 days each, three in every sekki. Dated in Jap
 | `{{PPPP}} YYYY`                   | `Chi hajimete kōru 2026`     | `Shimizu atataka o fukumu 2027` |
 | `{{PPPP:sekki}} {{P}}`            | `Rittō 56`                   | `Shōkan 68`                     |
 
-| Token              | Means                                        | Nov 13, 2026            |
-| ------------------ | -------------------------------------------- | ----------------------- |
-| `{{P}}`            | Kō of the year, 1 to 72, from Risshun        | `56`                    |
-| `{{Po}}`           | `{{P}}` as an ordinal                        | `56th`                  |
-| `{{PP}}`           | `{{P}}` with two digits                      | `56`                    |
-| `{{PPPP}}`         | Name in romaji                               | `Chi hajimete kōru`     |
-| `{{PPPP:kanji}}`   | Name in kanji                                | `地始凍`                |
-| `{{PPPP:kana}}`    | Name in kana                                 | `ちはじめてこおる`      |
-| `{{PPPP:english}}` | Name in English                              | `Land starts to freeze` |
-| `{{PPPP:sekki}}`   | Its sekki, in romaji                         | `Rittō`                 |
-| `{{start}}`        | First day                                    | `2026-11-12`            |
-| `{{end}}`          | Last day                                     | `2026-11-16`            |
-| `{{years}}`        | Year, or both years when it crosses New Year | `2026`                  |
+| Token              | Means                                                             | Nov 13, 2026            |
+| ------------------ | ----------------------------------------------------------------- | ----------------------- |
+| `{{P}}`            | Kō of the year, 1 to 72, from Risshun                             | `56`                    |
+| `{{Po}}`           | `{{P}}` as an ordinal                                             | `56th`                  |
+| `{{PP}}`           | `{{P}}` with two digits                                           | `56`                    |
+| `{{PPPP}}`         | Name in romaji                                                    | `Chi hajimete kōru`     |
+| `{{PPPP:kanji}}`   | Name in kanji                                                     | `地始凍`                |
+| `{{PPPP:kana}}`    | Name in kana                                                      | `ちはじめてこおる`      |
+| `{{PPPP:english}}` | Name in English                                                   | `Land starts to freeze` |
+| `{{PPPP:sekki}}`   | Its sekki, in romaji                                              | `Rittō`                 |
+| `{{start}}`        | First day. Takes a moment format after a colon                    | `2026-11-12`            |
+| `{{end}}`          | Last day. Takes a moment format after a colon                     | `2026-11-16`            |
+| `{{end?:-YYYY}}`   | Last day, only where it differs from the first day in that format | nothing                 |
 
 The 72 kō of the 1874 *Ryakuhonreki* (略本暦). Kanji and kana from Japanese Wikipedia, [七十二候](https://ja.wikipedia.org/wiki/七十二候); romaji and English from [Nippon.com](https://www.nippon.com/en/features/h00124/). Readings of the kō aren't standardized, so other sources may read them differently. Each kō is 5° of the sun's longitude.
 
@@ -403,18 +404,18 @@ The 24 jiéqì (节气), about 15 days each, from Lìchūn in early February. Da
 | `YYYY {{PPPP:hanzi}}`     | `2026 立冬`                | `2027 小寒`       |
 | `{{PPPP:english}} YYYY`   | `Beginning of winter 2026` | `Minor cold 2027` |
 
-| Token                  | Means                                        | Nov 13, 2026          |
-| ---------------------- | -------------------------------------------- | --------------------- |
-| `{{P}}`                | Jiéqì of the year, 1 to 24, from Lìchūn      | `19`                  |
-| `{{Po}}`               | `{{P}}` as an ordinal                        | `19th`                |
-| `{{PP}}`               | `{{P}}` with two digits                      | `19`                  |
-| `{{PPPP}}`             | Name in pinyin                               | `Lìdōng`              |
-| `{{PPPP:hanzi}}`       | Name in simplified characters                | `立冬`                |
-| `{{PPPP:traditional}}` | Name in traditional characters               | `立冬`                |
-| `{{PPPP:english}}`     | Name in English                              | `Beginning of winter` |
-| `{{start}}`            | First day                                    | `2026-11-07`          |
-| `{{end}}`              | Last day                                     | `2026-11-21`          |
-| `{{years}}`            | Year, or both years when it crosses New Year | `2026`                |
+| Token                  | Means                                                             | Nov 13, 2026          |
+| ---------------------- | ----------------------------------------------------------------- | --------------------- |
+| `{{P}}`                | Jiéqì of the year, 1 to 24, from Lìchūn                           | `19`                  |
+| `{{Po}}`               | `{{P}}` as an ordinal                                             | `19th`                |
+| `{{PP}}`               | `{{P}}` with two digits                                           | `19`                  |
+| `{{PPPP}}`             | Name in pinyin                                                    | `Lìdōng`              |
+| `{{PPPP:hanzi}}`       | Name in simplified characters                                     | `立冬`                |
+| `{{PPPP:traditional}}` | Name in traditional characters                                    | `立冬`                |
+| `{{PPPP:english}}`     | Name in English                                                   | `Beginning of winter` |
+| `{{start}}`            | First day. Takes a moment format after a colon                    | `2026-11-07`          |
+| `{{end}}`              | Last day. Takes a moment format after a colon                     | `2026-11-21`          |
+| `{{end?:-YYYY}}`       | Last day, only where it differs from the first day in that format | nothing               |
 
 Names from English Wikipedia, [Solar term](https://en.wikipedia.org/wiki/Solar_term). Dates are checked against the Hong Kong Observatory's tables for 1901 to 2100.
 
@@ -428,18 +429,18 @@ From one Lunar New Year to the next, 1901 to 2100. Command: **Open this zodiac y
 | `[Year of the ]{{PPPP}} YYYY`              | `Year of the Horse 2026` | `Year of the Horse 2026` |
 | `YYYY {{PPPP:ganzhi}}`                     | `2026 丙午`              | `2026 丙午`              |
 
-| Token              | Means                                        | Nov 13, 2026 |
-| ------------------ | -------------------------------------------- | ------------ |
-| `{{P}}`            | Animal of the cycle, 1 to 12, from the Rat   | `7`          |
-| `{{Po}}`           | `{{P}}` as an ordinal                        | `7th`        |
-| `{{PP}}`           | `{{P}}` with two digits                      | `07`         |
-| `{{PPPP}}`         | Animal                                       | `Horse`      |
-| `{{PPPP:element}}` | Wood, Fire, Earth, Metal or Water            | `Fire`       |
-| `{{PPPP:hanzi}}`   | Animal in characters                         | `马`         |
-| `{{PPPP:ganzhi}}`  | Stem and branch of the year                  | `丙午`       |
-| `{{start}}`        | First day                                    | `2026-02-17` |
-| `{{end}}`          | Last day                                     | `2027-02-05` |
-| `{{years}}`        | Year, or both years when it crosses New Year | `2026-27`    |
+| Token              | Means                                                             | Nov 13, 2026 |
+| ------------------ | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`            | Animal of the cycle, 1 to 12, from the Rat                        | `7`          |
+| `{{Po}}`           | `{{P}}` as an ordinal                                             | `7th`        |
+| `{{PP}}`           | `{{P}}` with two digits                                           | `07`         |
+| `{{PPPP}}`         | Animal                                                            | `Horse`      |
+| `{{PPPP:element}}` | Wood, Fire, Earth, Metal or Water                                 | `Fire`       |
+| `{{PPPP:hanzi}}`   | Animal in characters                                              | `马`         |
+| `{{PPPP:ganzhi}}`  | Stem and branch of the year                                       | `丙午`       |
+| `{{start}}`        | First day. Takes a moment format after a colon                    | `2026-02-17` |
+| `{{end}}`          | Last day. Takes a moment format after a colon                     | `2027-02-05` |
+| `{{end?:-YYYY}}`   | Last day, only where it differs from the first day in that format | `-2027`      |
 
 Lunar New Year from the Hong Kong Observatory's [Gregorian-Lunar calendar conversion tables](https://www.hko.gov.hk/en/gts/time/conversion.htm), 1901 to 2100. The element and stem-branch follow the sexagenary cycle.
 
@@ -455,17 +456,17 @@ The 24 jeolgi (절기), about 15 days each, from Ipchun in early February. Dated
 | `YYYY {{PPPP:hangul}}`    | `2026 입동`                | `2027 소한`       |
 | `{{PPPP:english}} YYYY`   | `Beginning of winter 2026` | `Minor cold 2027` |
 
-| Token              | Means                                        | Nov 13, 2026          |
-| ------------------ | -------------------------------------------- | --------------------- |
-| `{{P}}`            | Jeolgi of the year, 1 to 24, from Ipchun     | `19`                  |
-| `{{Po}}`           | `{{P}}` as an ordinal                        | `19th`                |
-| `{{PP}}`           | `{{P}}` with two digits                      | `19`                  |
-| `{{PPPP}}`         | Name, romanized                              | `Ipdong`              |
-| `{{PPPP:hangul}}`  | Name in Hangul                               | `입동`                |
-| `{{PPPP:english}}` | Name in English                              | `Beginning of winter` |
-| `{{start}}`        | First day                                    | `2026-11-07`          |
-| `{{end}}`          | Last day                                     | `2026-11-21`          |
-| `{{years}}`        | Year, or both years when it crosses New Year | `2026`                |
+| Token              | Means                                                             | Nov 13, 2026          |
+| ------------------ | ----------------------------------------------------------------- | --------------------- |
+| `{{P}}`            | Jeolgi of the year, 1 to 24, from Ipchun                          | `19`                  |
+| `{{Po}}`           | `{{P}}` as an ordinal                                             | `19th`                |
+| `{{PP}}`           | `{{P}}` with two digits                                           | `19`                  |
+| `{{PPPP}}`         | Name, romanized                                                   | `Ipdong`              |
+| `{{PPPP:hangul}}`  | Name in Hangul                                                    | `입동`                |
+| `{{PPPP:english}}` | Name in English                                                   | `Beginning of winter` |
+| `{{start}}`        | First day. Takes a moment format after a colon                    | `2026-11-07`          |
+| `{{end}}`          | Last day. Takes a moment format after a colon                     | `2026-11-21`          |
+| `{{end?:-YYYY}}`   | Last day, only where it differs from the first day in that format | nothing               |
 
 Names from English Wikipedia, [Solar term](https://en.wikipedia.org/wiki/Solar_term), in South Korean spelling. Dated in Korea time.
 
@@ -475,23 +476,23 @@ Names from English Wikipedia, [Solar term](https://en.wikipedia.org/wiki/Solar_t
 
 Six seasons of about two months, from Vasanta in mid-February. Śiśira starts at the winter solstice. Dated in India time (UTC+5:30). Command: **Open this ṛtu**.
 
-| Example                        | Nov 13, 2026      | Jan 10, 2027     |
-| ------------------------------ | ----------------- | ---------------- |
-| `{{PPPP}} {{years}}` (default) | `Hemanta 2026`    | `Śiśira 2026-27` |
-| `YYYY {{PPPP:devanagari}}`     | `2026 हेमन्त`       | `2026 शिशिर`       |
-| `{{PPPP:english}} {{years}}`   | `Pre-winter 2026` | `Winter 2026-27` |
+| Example                               | Nov 13, 2026      | Jan 10, 2027     |
+| ------------------------------------- | ----------------- | ---------------- |
+| `{{PPPP}} YYYY{{end?:-YY}}` (default) | `Hemanta 2026`    | `Śiśira 2026-27` |
+| `YYYY {{PPPP:devanagari}}`            | `2026 हेमन्त`       | `2026 शिशिर`       |
+| `{{PPPP:english}} YYYY{{end?:-YY}}`   | `Pre-winter 2026` | `Winter 2026-27` |
 
-| Token                 | Means                                        | Nov 13, 2026 |
-| --------------------- | -------------------------------------------- | ------------ |
-| `{{P}}`               | Ṛtu of the year, 1 to 6, from Vasanta        | `5`          |
-| `{{Po}}`              | `{{P}}` as an ordinal                        | `5th`        |
-| `{{PP}}`              | `{{P}}` with two digits                      | `05`         |
-| `{{PPPP}}`            | Name, with diacritics                        | `Hemanta`    |
-| `{{PPPP:plain}}`      | Name, without diacritics                     | `Hemanta`    |
-| `{{PPPP:devanagari}}` | Name in Devanagari                           | `हेमन्त`       |
-| `{{PPPP:english}}`    | Name in English                              | `Pre-winter` |
-| `{{start}}`           | First day                                    | `2026-10-23` |
-| `{{end}}`             | Last day                                     | `2026-12-21` |
-| `{{years}}`           | Year, or both years when it crosses New Year | `2026`       |
+| Token                 | Means                                                             | Nov 13, 2026 |
+| --------------------- | ----------------------------------------------------------------- | ------------ |
+| `{{P}}`               | Ṛtu of the year, 1 to 6, from Vasanta                             | `5`          |
+| `{{Po}}`              | `{{P}}` as an ordinal                                             | `5th`        |
+| `{{PP}}`              | `{{P}}` with two digits                                           | `05`         |
+| `{{PPPP}}`            | Name, with diacritics                                             | `Hemanta`    |
+| `{{PPPP:plain}}`      | Name, without diacritics                                          | `Hemanta`    |
+| `{{PPPP:devanagari}}` | Name in Devanagari                                                | `हेमन्त`       |
+| `{{PPPP:english}}`    | Name in English                                                   | `Pre-winter` |
+| `{{start}}`           | First day. Takes a moment format after a colon                    | `2026-10-23` |
+| `{{end}}`             | Last day. Takes a moment format after a colon                     | `2026-12-21` |
+| `{{end?:-YYYY}}`      | Last day, only where it differs from the first day in that format | nothing      |
 
 Ṛtu here follow the tropical sun, as [Drik Panchang](https://www.drikpanchang.com/seasons/season-tropical-timings.html) dates them: Śiśira starts at the winter solstice, and each ṛtu spans 60° of the sun's longitude. Calendars that count ṛtu by lunar months, like Chaitra and Vaishakha for Vasanta, run up to a month later.

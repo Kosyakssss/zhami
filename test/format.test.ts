@@ -37,18 +37,19 @@ describe("name formats", () => {
     expect(at("decade", "2026-11-13", "{{P}}").errors).toHaveLength(1);
   });
 
-  test("{{years}} shows one year, or two when the period crosses New Year", () => {
-    expect(at("meteorological", "2026-07-01", "{{years:YY-YY}}").name).toBe("26");
-    expect(at("meteorological", "2027-01-01", "{{years:YY-YY}}").name).toBe("26-27");
-    expect(at("meteorological", "2027-01-01", "{{years:YYYY–YY}}").name).toBe("2026–27");
-    expect(at("meteorological", "2027-01-01", "{{years:YYYY/YYYY}}").name).toBe("2026/2027");
+  test("{{end?}} appears only where the last day looks different from the first", () => {
+    expect(at("meteorological", "2026-11-13", "{{PPPP}} YYYY{{end?:-YY}}").name).toBe("Autumn 2026");
+    expect(at("meteorological", "2027-01-10", "{{PPPP}} YYYY{{end?:-YY}}").name).toBe("Winter 2026-27");
+    expect(at("meteorological", "2027-01-10", "{{PPPP}} YYYY{{end?:[ to ]YYYY}}").name).toBe("Winter 2026 to 2027");
+    expect(at("week", "2026-11-13", "{{start:MMM D}}–{{end?:MMM }}{{end:D}}").name).toBe("Nov 9–15");
+    expect(at("week", "2026-12-01", "{{start:MMM D}}–{{end?:MMM }}{{end:D}}").name).toBe("Nov 30–Dec 6");
   });
 
-  test("{{years}} writes the second year in full when the century changes", () => {
-    expect(at("decade", "2026-11-13", "{{years}}").name).toBe("2020-29");
-    expect(at("century", "2026-11-13", "{{years}}").name).toBe("2001-2100");
-    expect(at("millennium", "2026-11-13", "{{years}}").name).toBe("2001-3000");
-    expect(at("meteorological", "2000-01-10", "{{years}}").name).toBe("1999-2000");
+  test("{{start}} and {{end}} give exactly the format written, spaces included", () => {
+    expect(at("meteorological", "2026-11-13", "YY-{{end:YY}}").name).toBe("26-26");
+    expect(at("century", "2026-11-13", "YY-{{end:YY}}").name).toBe("01-00");
+    expect(at("century", "2026-11-13", "YYYY-{{end:YYYY}}").name).toBe("2001-2100");
+    expect(at("meteorological", "2027-01-10", "YYYY{{end?: – YYYY}}").name).toBe("2026 – 2027");
   });
 
   test("{{start}} and {{end}} take any moment format", () => {
@@ -84,7 +85,8 @@ describe("settings and docs", () => {
         for (const format of p.examples) expect([p.key, render(format, p, instance).errors]).toEqual([p.key, []]);
         for (const row of reference(p, instance)) {
           expect([row.token, render(row.token, p, instance).errors]).toEqual([row.token, []]);
-          expect(row.value).not.toBe("");
+          // Only {{end?}} may give nothing, when the period stays in one year.
+          if (!row.token.includes("?")) expect(row.value).not.toBe("");
         }
       }
     }

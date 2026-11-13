@@ -4,7 +4,7 @@ import type { Context, Instance, Period } from "./periods";
 // Zhami's tokens sit in double braces, so moment never reads them: {{P}} is
 // a period's number, {{PPPP}} its name. Everything outside the braces is
 // moment's.
-const TOKEN = /\{\{\s*([A-Za-z]+)(?::([^{}]*))?\s*\}\}/g;
+const TOKEN = /\{\{\s*([A-Za-z]+\??)(?::([^{}]*))?\}\}/g;
 
 const DAY = "YYYY-MM-DD";
 
@@ -12,20 +12,6 @@ export function ordinal(n: number) {
   const tens = n % 100;
   const suffix = tens > 10 && tens < 14 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th");
   return `${n}${suffix}`;
-}
-
-// {{years:YYYY-YY}} gives 2026 for a period inside one year and 2026-27 for
-// one that crosses New Year: the first year format, the separator, then the
-// second year format.
-function years(start: Moment, end: Moment, format: string) {
-  const parts = /^(Y+)([^Y]+)(Y+)$/.exec(format);
-  if (!parts) return start.format(format);
-  const [, first, separator, second] = parts;
-  if (start.year() === end.year()) return start.format(first);
-  // A short second year only works within one century: 2026-27, but
-  // 1999-2000 and 2001-2100.
-  const sameCentury = Math.floor(start.year() / 100) === Math.floor(end.year() / 100);
-  return `${start.format(first)}${separator}${end.format(sameCentury ? second! : "YYYY")}`;
 }
 
 export interface Row {
@@ -46,11 +32,16 @@ export function reference(period: Period, instance: Instance): Row[] {
   }
   for (const [token, desc] of Object.entries(period.labels ?? {})) rows.push([`{{${token}}}`, desc]);
   rows.push(
-    ["{{start}}", "First day"],
-    ["{{end}}", "Last day"],
-    ["{{years}}", "Year, or both years when it crosses New Year"],
+    ["{{start}}", "First day. Takes a moment format after a colon"],
+    ["{{end}}", "Last day. Takes a moment format after a colon"],
+    ["{{end?:-YYYY}}", "Last day, only where it differs from the first day in that format"],
   );
-  if (instance.year) rows.push(["{{fy}}", "Fiscal year, or both years when it crosses New Year"]);
+  if (instance.year) {
+    rows.push(
+      ["{{fy:YYYY}}", "First day of the fiscal year"],
+      ["{{fyend:YYYY}}", "Last day of the fiscal year"],
+    );
+  }
   return rows.map(([token, desc]) => ({ token, desc, value: render(token, period, instance).text }));
 }
 
@@ -67,15 +58,25 @@ function value(name: string, arg: string | undefined, instance: Instance): strin
     case "PPPP":
       return labels?.[arg ? `${name}:${arg.trim()}` : name];
     case "start":
-      return instance.start.format(arg?.trim() || DAY);
+      return instance.start.format(arg || DAY);
     case "end":
-      return instance.end.format(arg?.trim() || DAY);
-    case "years":
-      return years(instance.start, instance.end, arg?.trim() || "YYYY-YY");
+      return instance.end.format(arg || DAY);
+    case "end?":
+      return different(instance.start, instance.end, arg || DAY);
     case "fy":
-      return instance.year && years(instance.year.start, instance.year.end, arg?.trim() || "YYYY-YY");
+      return instance.year?.start.format(arg || DAY);
+    case "fyend":
+      return instance.year?.end.format(arg || DAY);
   }
   return undefined;
+}
+
+// The last day, or nothing where the first day looks the same in that
+// format. {{end?:-YY}} adds -27 to a winter that starts in 2026, and
+// nothing to an autumn.
+function different(start: Moment, end: Moment, format: string) {
+  const last = end.format(format);
+  return start.format(format) === last ? "" : last;
 }
 
 export interface Rendered {

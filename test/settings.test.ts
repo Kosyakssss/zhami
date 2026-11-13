@@ -18,6 +18,7 @@ test("settings from before 0.2 lose old defaults and {{n}} tokens, and keep ever
       decade: "{{n}}[s]",
       century: "{{nth}} [century]",
       year: "[Year ]YYYY",
+      academic: "{{years:YY-YY}}",
     },
     templates: { week: "Templates/Week.md", fortnight: "", season: "" },
     dates: {},

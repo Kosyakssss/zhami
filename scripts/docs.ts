@@ -59,7 +59,7 @@ function section(period: Period) {
   const rows = reference(period, first!).map((row) => [
     code(row.token),
     row.desc.replace(/\{\{[^}]+\}\}/g, (t) => code(t)),
-    code(row.value),
+    row.value ? code(row.value) : "nothing",
   ]);
   out.push(...table(["Token", "Means", heading(DAYS[0]!)], rows), "");
 
@@ -74,7 +74,7 @@ const doc = [
   "",
   "Every period Zhami knows. For each: example formats, and the tokens it understands with what each gives. Settings show the same tables, for today. [Name formats](formats.md) explains how tokens combine.",
   "",
-  "Moment's tokens, like `YYYY` and `MMMM`, work for every period. The tables list the ones that matter for it. `{{start}}`, `{{end}}` and `{{years}}` take a format after a colon, like `{{start:MMM D}}` or `{{years:YY-YY}}`.",
+  "Moment's tokens, like `YYYY` and `MMMM`, work for every period. The tables list the ones that matter for it. `{{start}}` and `{{end}}` take any moment format after a colon, like `{{start:MMM D}}`. See [Name formats](formats.md#first-and-last-day).",
   "",
   ...GROUPS.flatMap((group) => [`## ${group}`, "", ...PERIODS.filter((p) => p.group === group).map(section)]),
 ].join("\n");

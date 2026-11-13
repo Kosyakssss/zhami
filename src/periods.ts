@@ -19,7 +19,7 @@ export interface Instance {
   n?: number;
   // Names for {{PPP}} and {{PPPP}}, keyed by token, like "PPPP:kanji".
   labels?: Record<string, string>;
-  // The fiscal year a fiscal quarter belongs to, for {{fy}}.
+  // The fiscal year a fiscal quarter belongs to, for {{fy}} and {{fyend}}.
   year?: { start: Moment; end: Moment };
 }
 
@@ -259,7 +259,7 @@ export const PERIODS: Period[] = [
     group: "Calendar",
     span: "Ten years, from a year ending in 0",
     format: "YYYY[s]",
-    examples: ["YYYY[s]", "[The ]YY[s]", "{{years:YYYY-YYYY}}"],
+    examples: ["YYYY[s]", "[The ]YY[s]", "YYYY-{{end:YYYY}}"],
     momentTokens: { "YYYY[s]": "First year, with an s", "YY[s]": "First year with two digits, with an s" },
     at: years(10, false),
   },
@@ -269,7 +269,7 @@ export const PERIODS: Period[] = [
     group: "Calendar",
     span: "A hundred years: the 21st runs from 2001 to 2100",
     format: "{{Po}} [century]",
-    examples: ["{{Po}} [century]", "[Century ]{{P}}", "{{years:YYYY-YYYY}}"],
+    examples: ["{{Po}} [century]", "[Century ]{{P}}", "YYYY-{{end:YYYY}}"],
     number: "Century, counted from year 1",
     at: years(100, true),
   },
@@ -288,8 +288,8 @@ export const PERIODS: Period[] = [
     name: "Meteorological season",
     group: "Seasons",
     span: "Three whole months: winter is December to February in the north",
-    format: "{{PPPP}} {{years}}",
-    examples: ["{{PPPP}} {{years}}", "{{PPPP}} {{years:YY-YY}}", "{{PPPP:fall}} {{years:YYYY-YYYY}}", "{{PPP}} YY"],
+    format: "{{PPPP}} YYYY{{end?:-YY}}",
+    examples: ["{{PPPP}} YYYY{{end?:-YY}}", "{{PPPP}} YY{{end?:-YY}}", "{{PPPP}} YYYY{{end?:[ to ]YYYY}}", "{{PPP}} YY"],
     number: "Season of the year, 1 to 4, from March",
     labels: SEASON_LABELS,
     at: marks((y, ctx) =>
@@ -301,8 +301,8 @@ export const PERIODS: Period[] = [
     name: "Astronomical season",
     group: "Seasons",
     span: "From an equinox or solstice to the next",
-    format: "{{PPPP}} {{years}}",
-    examples: ["{{PPPP}} {{years}}", "{{PPPP}} {{years:YY-YY}}", "{{PPPP:fall}} {{years:YYYY-YYYY}}"],
+    format: "{{PPPP}} YYYY{{end?:-YY}}",
+    examples: ["{{PPPP}} YYYY{{end?:-YY}}", "{{PPPP:fall}} YYYY{{end?:-YYYY}}", "{{PPPP}} YY{{end?:-YY}}"],
     number: "Season of the year, 1 to 4, from the March equinox",
     labels: SEASON_LABELS,
     clock: "your time zone",
@@ -314,8 +314,8 @@ export const PERIODS: Period[] = [
     command: "Open this festival of the Wheel of the Year",
     group: "Seasons",
     span: "Eight festivals: the solstices, the equinoxes, and the days between",
-    format: "{{PPPP}} {{years}}",
-    examples: ["{{PPPP}} {{years}}", "YYYY {{PPPP}}", "{{PP}} {{PPPP}} YYYY"],
+    format: "{{PPPP}} YYYY{{end?:-YY}}",
+    examples: ["{{PPPP}} YYYY{{end?:-YY}}", "YYYY {{PPPP}}", "{{PP}} {{PPPP}} YYYY"],
     number: "Festival of the year, 1 to 8, from Samhain",
     labels: { PPPP: "Samhain, Yule, Imbolc, Ostara, Beltane, Litha, Lughnasadh or Mabon" },
     clock: "your time zone, for the solstices and equinoxes",
@@ -336,7 +336,7 @@ export const PERIODS: Period[] = [
     group: "Work",
     span: "Spring-summer and fall-winter, from dates you choose",
     format: "{{PPP}}YY",
-    examples: ["{{PPP}}YY", "{{PPPP}} {{years}}", "{{PPP:autumn}}YY", "YYYY {{PPP}}"],
+    examples: ["{{PPP}}YY", "{{PPPP}} YYYY{{end?:-YY}}", "{{PPP:autumn}}YY", "YYYY {{PPP}}"],
     number: "1 for spring-summer, 2 for fall-winter",
     labels: {
       PPPP: "Spring-summer or Fall-winter",
@@ -367,7 +367,7 @@ export const PERIODS: Period[] = [
     group: "Work",
     span: "A year from the date you choose",
     format: "[FY]YYYY",
-    examples: ["[FY]YYYY", "[FY]{{end:YYYY}}", "[FY]{{years:YYYY-YY}}"],
+    examples: ["[FY]YYYY", "[FY]{{end:YYYY}}", "[FY]YYYY-{{end:YY}}"],
     dates: [{ key: "fiscal", name: "Starts", default: "04-01" }],
     at: marks((y, ctx) => [{ date: each("fiscal")(y, ctx), n: 1 }]),
   },
@@ -377,7 +377,7 @@ export const PERIODS: Period[] = [
     group: "Work",
     span: "Three months, from the start of the fiscal year",
     format: "[FY]{{fy:YYYY}} [Q]{{P}}",
-    examples: ["[FY]{{fy:YYYY}} [Q]{{P}}", "[FY]{{fy:YY}}-[Q]{{P}}", "[FY]{{fy:YYYY-YY}} [Q]{{P}}"],
+    examples: ["[FY]{{fy:YYYY}} [Q]{{P}}", "[FY]{{fy:YY}}-[Q]{{P}}", "[FY]{{fy:YYYY}}-{{fyend:YY}} [Q]{{P}}"],
     number: "Quarter of the fiscal year, 1 to 4",
     dates: [{ key: "fiscal", name: "Fiscal year starts", default: "04-01" }],
     at: marks((y, ctx) => {
@@ -391,8 +391,8 @@ export const PERIODS: Period[] = [
     name: "Academic year",
     group: "Work",
     span: "A school year, from the date you choose",
-    format: "{{years}}",
-    examples: ["{{years}}", "{{years:YYYY-YYYY}}", "[AY ]{{years:YY-YY}}"],
+    format: "YYYY-{{end:YY}}",
+    examples: ["YYYY-{{end:YY}}", "YYYY-{{end:YYYY}}", "[AY ]YY-{{end:YY}}"],
     dates: [{ key: "academic", name: "Starts", default: "09-01" }],
     at: marks((y, ctx) => [{ date: each("academic")(y, ctx), n: 1 }]),
   },
@@ -512,8 +512,8 @@ export const PERIODS: Period[] = [
     name: "Ṛtu",
     group: "India",
     span: "Six seasons of about two months, from Vasanta in mid-February. Śiśira starts at the winter solstice",
-    format: "{{PPPP}} {{years}}",
-    examples: ["{{PPPP}} {{years}}", "YYYY {{PPPP:devanagari}}", "{{PPPP:english}} {{years}}"],
+    format: "{{PPPP}} YYYY{{end?:-YY}}",
+    examples: ["{{PPPP}} YYYY{{end?:-YY}}", "YYYY {{PPPP:devanagari}}", "{{PPPP:english}} YYYY{{end?:-YY}}"],
     number: "Ṛtu of the year, 1 to 6, from Vasanta",
     labels: {
       PPPP: "Name, with diacritics",

@@ -36,7 +36,7 @@ describe("renaming notes", () => {
   test("works with Zhami's tokens", () => {
     const season = period("meteorological");
     const seasons = instances(season, north, around, 50);
-    const result = plan(["Autumn 2026", "Winter 2025-26"], season, seasons, "{{PPPP}} {{years}}", "{{PPP}} {{years:YY-YY}}", () => false);
+    const result = plan(["Autumn 2026", "Winter 2025-26"], season, seasons, "{{PPPP}} YYYY{{end?:-YY}}", "{{PPP}} YY{{end?:-YY}}", () => false);
     expect(result.moves).toEqual([
       { from: "Autumn 2026", to: "Aut 26" },
       { from: "Winter 2025-26", to: "Win 25-26" },

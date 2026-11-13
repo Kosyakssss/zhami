@@ -13,7 +13,7 @@ Templates understand the core Templates plugin's variables:
 | `{{date:dddd}}` | Today, in any format | `Friday`     |
 | `{{time}}`      | Now                  | `09:30`      |
 
-And every token of [name formats](formats.md), like `{{start}}`, `{{end}}`, `{{years}}`, `{{P}}` and `{{PPPP}}`.
+And every token of [name formats](formats.md), like `{{start}}`, `{{end}}`, `{{P}}` and `{{PPPP}}`.
 
 Variables Zhami doesn't know stay as they are, so a template can also hold another plugin's syntax.
 

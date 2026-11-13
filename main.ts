@@ -315,7 +315,7 @@ class ZhamiSettings extends PluginSettingTab {
             searchable: false,
             render: (setting: Setting) => {
               setting.nameEl.addClass("zhami-token");
-              setting.controlEl.createSpan({ cls: "zhami-value", text: row.value });
+              setting.controlEl.createSpan({ cls: "zhami-value", text: row.value || "nothing" });
             },
           })),
           {

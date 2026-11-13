@@ -38,7 +38,7 @@ export function load(saved: unknown): Settings {
 
 // Settings keep only what differs from the defaults, so a default that
 // changes in a new version reaches everyone who never changed it. Formats
-// with tokens from before version 0.2, like {{n}}, are dropped too.
+// with tokens that no longer exist, like {{n}} and {{years}}, are dropped.
 export function tidy(settings: Settings): Settings {
   const keys = new Set(PERIODS.map((p) => p.key));
   const keep = (record: Record<string, string>, drop: (key: string, value: string) => boolean = () => false) => {
@@ -50,7 +50,7 @@ export function tidy(settings: Settings): Settings {
   keep(settings.templates);
   keep(settings.formats, (key, value) => {
     const period = PERIODS.find((p) => p.key === key)!;
-    return value === period.format || /\{\{?\s*(n|nth|season)\s*\}\}?/.test(value);
+    return value === period.format || /\{\{?\s*(n|nth|season|years)\s*(:[^}]*)?\}/.test(value);
   });
   for (const key of Object.keys(settings.enabled)) if (!keys.has(key)) delete settings.enabled[key];
   for (const [key, value] of Object.entries(settings.dates)) if (!value) delete settings.dates[key];
