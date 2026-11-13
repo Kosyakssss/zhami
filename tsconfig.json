@@ -6,7 +6,19 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "resolveJsonModule": true,
+    "types": [
+      "bun"
+    ]
   },
-  "include": ["main.ts"]
+  "include": [
+    "main.ts",
+    "src",
+    "test",
+    "scripts"
+  ]
 }
