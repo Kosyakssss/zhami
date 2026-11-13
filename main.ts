@@ -16,7 +16,7 @@ import {
 import { fill, reference, render } from "./src/format";
 import { moment, useMoment } from "./src/moment";
 import { GROUPS, next, noun, PERIODS, previous, type Context, type Instance, type Period } from "./src/periods";
-import { byName, instances, plan } from "./src/rename";
+import { instances, named, plan } from "./src/rename";
 import { DEFAULTS, load, tidy, type Settings } from "./src/settings";
 
 // ჟ, the first letter of ჟამი, from Noto Sans Georgian (SIL Open Font
@@ -75,20 +75,21 @@ export default class Zhami extends Plugin {
   }
 
   // The occurrence an open note is, if it's one of this period's notes.
-  private names = new Map<string, Map<string, Instance>>();
+  // Remembered by path, format and settings, so a note that isn't one is
+  // only searched for once.
+  private seen = new Map<string, Instance | undefined>();
   showing(period: Period): Instance | undefined {
     const file = this.app.workspace.getActiveFile();
     const folder = normalizePath(this.folder(period) || "/");
     const prefix = folder === "/" ? "" : `${folder}/`;
     if (!file || file.extension !== "md" || !file.path.startsWith(prefix)) return undefined;
     const format = this.format(period);
-    const key = `${period.key}|${format}|${JSON.stringify(this.context)}`;
-    let names = this.names.get(key);
-    if (!names) {
-      names = byName(period, this.context, format, moment());
-      this.names.set(key, names);
+    const key = `${period.key}|${format}|${JSON.stringify(this.context)}|${file.path}|${moment().format("YYYY-MM-DD")}`;
+    if (!this.seen.has(key)) {
+      if (this.seen.size > 1000) this.seen.clear();
+      this.seen.set(key, named(period, this.context, format, moment(), file.path.slice(prefix.length, -3)));
     }
-    return names.get(file.path.slice(prefix.length, -3));
+    return this.seen.get(key);
   }
 
   // Opens this occurrence of a period, or the next or previous one, and
@@ -206,10 +207,11 @@ class ZhamiSettings extends PluginSettingTab {
             type: "page" as const,
             name: period.name,
             desc: period.span,
+            // Today's note, without the folder, so it fits on a phone.
             displayValue: () => {
               if (!settings.enabled[period.key]) return "Off";
               try {
-                return this.plugin.path(period).path;
+                return render(this.plugin.format(period), period, this.plugin.instance(period)).text;
               } catch {
                 return "On";
               }
@@ -317,7 +319,7 @@ class ZhamiSettings extends PluginSettingTab {
           render: (setting: Setting) => {
             const instance = now();
             setting.nameEl.addClass("zhami-token");
-            if (instance) setting.controlEl.createSpan({ cls: "zhami-value", text: render(format, period, instance).text });
+            if (instance) setting.setDesc(render(format, period, instance).text);
             const used = this.plugin.format(period) === format;
             setting.addButton((button) =>
               button
@@ -431,7 +433,15 @@ class RenamePage extends SettingPage {
   show(el: HTMLElement, state: { find: string; to: string; folder: string }) {
     const { app } = this.plugin;
     el.empty();
-    this.all ??= instances(this.period, this.plugin.context, moment());
+    if (!this.all) {
+      // Listing every occurrence can take a second, for kō; show the page first.
+      new Setting(el).setName("Looking for notes…");
+      window.setTimeout(() => {
+        this.all = instances(this.period, this.plugin.context, moment());
+        this.show(el, state);
+      }, 50);
+      return;
+    }
     const folder = normalizePath(state.folder || "/");
     const prefix = folder === "/" ? "" : `${folder}/`;
     const files = app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(prefix));
@@ -445,12 +455,12 @@ class RenamePage extends SettingPage {
       return;
     }
     const button = new Setting(el)
-      .setName(result.moves.length ? `${result.moves.length} notes match` : "No notes match")
-      .setDesc("Links to them update, as with any rename in Obsidian.");
+      .setName(result.moves.length ? `${notes(result.moves.length)} ${result.moves.length === 1 ? "matches" : "match"}` : "No notes match")
+      .setDesc("Links to them update. If Automatically update internal links is off, Obsidian asks for each note.");
     if (result.moves.length) {
       button.addButton((b) =>
         b
-          .setButtonText(`Rename ${result.moves.length} notes`)
+          .setButtonText(`Rename ${notes(result.moves.length)}`)
           .setCta()
           .onClick(async () => {
             b.setDisabled(true);
@@ -461,21 +471,27 @@ class RenamePage extends SettingPage {
               await this.plugin.ensureFolder(target.split("/").slice(0, -1).join("/"));
               await app.fileManager.renameFile(file, target);
             }
-            new Notice(`Zhami: renamed ${result.moves.length} notes`);
+            new Notice(`Zhami: renamed ${notes(result.moves.length)}`);
             this.show(el, state);
           }),
       );
     }
     const list = el.createEl("ul", { cls: "zhami-moves" });
-    for (const move of result.moves.slice(0, 200)) list.createEl("li", { text: `${move.from} → ${move.to}` });
+    for (const move of result.moves.slice(0, 200)) list.createEl("li").createSpan({ cls: "zhami-token", text: `${move.from} → ${move.to}` });
     if (result.moves.length > 200) list.createEl("li", { text: `and ${result.moves.length - 200} more` });
     if (result.conflicts.length) {
-      new Setting(el).setName(`${result.conflicts.length} notes are skipped`).setHeading();
+      new Setting(el).setName(`${notes(result.conflicts.length)} ${result.conflicts.length === 1 ? "is" : "are"} skipped`).setHeading();
       const skipped = el.createEl("ul", { cls: "zhami-moves" });
-      for (const c of result.conflicts) skipped.createEl("li", { text: `${c.from} → ${c.to}: ${c.reason}` });
+      for (const c of result.conflicts) {
+        const li = skipped.createEl("li");
+        li.createSpan({ cls: "zhami-token", text: `${c.from} → ${c.to}` });
+        li.append(`: ${c.reason}`);
+      }
     }
   }
 }
+
+const notes = (n: number) => `${n} ${n === 1 ? "note" : "notes"}`;
 
 class FolderSuggest extends AbstractInputSuggest<string> {
   constructor(

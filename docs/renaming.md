@@ -12,7 +12,9 @@ It also works for notes you made by hand, before Zhami or without it.
 
 The page lists every note that matches, with its new name, before anything changes. Select **Rename** to rename them.
 
-Renaming goes through Obsidian, so links to the notes update when Obsidian's **Automatically update internal links** is on.
+Renaming goes through Obsidian, so links to the notes update as with any rename. If **Automatically update internal links** is off, in **Files and links**, Obsidian asks first, once for each note.
+
+It looks for notes from the 100 years before today to the 100 years after, or the 1,000 periods before and after, whichever reaches further: a thousand years of year notes, and every decade, century and millennium.
 
 ## Any text: `*`
 

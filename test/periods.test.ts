@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { sunSteps } from "../src/astro";
 import { next, PERIODS, previous } from "../src/periods";
-import { byName } from "../src/rename";
+import { named } from "../src/rename";
 import hko from "./fixtures/hko.json";
 import { at, moment, north, period, south } from "./setup";
 
@@ -178,11 +178,14 @@ describe("next and previous", () => {
   });
 
   test("a note's name tells which occurrence it is", () => {
-    const names = byName(period("week"), north, "GGGG-[W]WW", moment("2026-11-13", "YYYY-MM-DD"));
-    expect(names.get("2026-W40")!.start.format("YYYY-MM-DD")).toBe("2026-09-28");
-    expect(names.get("2026-W53")!.end.format("YYYY-MM-DD")).toBe("2027-01-03");
-    expect(names.get("2026-W54")).toBeUndefined();
-    const seasons = byName(period("meteorological"), north, "{{PPPP}} YYYY{{end?:-YY}}", moment("2026-11-13", "YYYY-MM-DD"));
-    expect(seasons.get("Winter 2026-27")!.start.format("YYYY-MM-DD")).toBe("2026-12-01");
+    const today = moment("2026-11-13", "YYYY-MM-DD");
+    const week = (name: string) => named(period("week"), north, "GGGG-[W]WW", today, name);
+    expect(week("2026-W40")!.start.format("YYYY-MM-DD")).toBe("2026-09-28");
+    expect(week("2026-W53")!.end.format("YYYY-MM-DD")).toBe("2027-01-03");
+    expect(week("1999-W01")!.start.format("YYYY-MM-DD")).toBe("1999-01-04");
+    expect(week("2026-W54")).toBeUndefined();
+    expect(week("Weekly review")).toBeUndefined();
+    const season = named(period("meteorological"), north, "{{PPPP}} YYYY{{end?:-YY}}", today, "Winter 2026-27");
+    expect(season!.start.format("YYYY-MM-DD")).toBe("2026-12-01");
   });
 });

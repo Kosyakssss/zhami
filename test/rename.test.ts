@@ -6,13 +6,27 @@ const around = moment("2026-11-13", "YYYY-MM-DD");
 
 describe("renaming notes", () => {
   const week = period("week");
-  const weeks = instances(week, north, around, 1000);
+  const weeks = instances(week, north, around);
 
   test("instances run in order around a date, without gaps", () => {
     for (let i = 1; i < weeks.length; i++) {
       expect(weeks[i]!.start.diff(weeks[i - 1]!.end, "ms")).toBe(1);
     }
-    expect(weeks.length).toBe(2000);
+  });
+
+  test("instances reach 100 years either way, or 1000 occurrences", () => {
+    const span = (key: string) => {
+      const all = instances(period(key), north, around);
+      return [all.length, all[0]!.start.format("YYYY-MM-DD"), all.at(-1)!.start.format("YYYY-MM-DD")];
+    };
+    // Weeks starting in 1926 to 2126.
+    expect(span("week")).toEqual([10488, "1926-01-04", "2126-12-30"]);
+    expect(span("year")).toEqual([2001, "1026-01-01", "3026-01-01"]);
+    // Every millennium from the first.
+    expect(span("millennium")).toEqual([10, "0001-01-01", "9001-01-01"]);
+    // Zodiac years only from 1901 to 2100.
+    const zodiac = instances(period("zodiac"), north, around);
+    expect(zodiac[0]!.start.format("YYYY-MM-DD")).toBe("1901-02-19");
   });
 
   test("matches notes by the old format and names them by the new one", () => {
@@ -35,7 +49,7 @@ describe("renaming notes", () => {
 
   test("works with Zhami's tokens", () => {
     const season = period("meteorological");
-    const seasons = instances(season, north, around, 50);
+    const seasons = instances(season, north, around);
     const result = plan(["Autumn 2026", "Winter 2025-26"], season, seasons, "{{PPPP}} YYYY{{end?:-YY}}", "{{PPP}} YY{{end?:-YY}}", () => false);
     expect(result.moves).toEqual([
       { from: "Autumn 2026", to: "Aut 26" },

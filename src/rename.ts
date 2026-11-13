@@ -2,49 +2,69 @@ import type { Moment } from "moment";
 import { render } from "./format";
 import { next, previous, type Context, type Instance, type Period } from "./periods";
 
-// Every occurrence of a period around `around`, oldest first, up to `limit`
-// each way. Stops early where a period has no data, like zodiac years
-// outside 1901 to 2100.
-export function instances(period: Period, ctx: Context, around: Moment, limit = 10_000): Instance[] {
-  const walk = (from: Instance | undefined, step: typeof next) => {
-    const out: Instance[] = [];
-    let instance = from;
-    for (let i = 0; i < limit && instance; i++) {
-      out.push(instance);
-      try {
-        instance = step(period, ctx, instance);
-      } catch {
-        instance = undefined;
-      }
-      if (instance && (instance.start.year() < 1 || instance.start.year() > 9999)) instance = undefined;
-    }
-    return out;
-  };
-  let here: Instance | undefined;
+// How far Zhami looks for a period's notes: the 100 years either side of
+// today, or 1000 occurrences each way where that reaches further, as for
+// years and decades. Never outside the years 1 to 9999.
+export interface Reach {
+  years: number;
+  count: number;
+}
+export const REACH: Reach = { years: 100, count: 1000 };
+
+// The occurrence after or before `from`, if it's within reach. `steps`
+// counts the steps from `around` so far.
+function step(period: Period, ctx: Context, from: Instance, by: typeof next, around: Moment, steps: number, reach: Reach) {
+  let instance: Instance;
   try {
-    here = period.at(around, ctx);
+    instance = by(period, ctx, from);
   } catch {
-    return [];
+    // No data this far out, like zodiac years outside 1901 to 2100.
+    return undefined;
   }
-  let first: Instance | undefined;
-  try {
-    first = previous(period, ctx, here);
-  } catch {
-    first = undefined;
-  }
-  const after = walk(here, next);
-  const before = walk(first, previous);
-  return [...before.reverse(), ...after];
+  const year = instance.start.year();
+  if (year < 1 || year > 9999) return undefined;
+  return steps <= reach.count || Math.abs(year - around.year()) <= reach.years ? instance : undefined;
 }
 
-// Occurrences by their name under `format`, to tell which one a note is.
-export function byName(period: Period, ctx: Context, format: string, around: Moment, limit = 2000) {
-  const map = new Map<string, Instance>();
-  for (const instance of instances(period, ctx, around, limit)) {
-    const { text, errors } = render(format, period, instance);
-    if (!errors.length) map.set(text, instance);
+function at(period: Period, ctx: Context, around: Moment) {
+  try {
+    return period.at(around, ctx);
+  } catch {
+    return undefined;
   }
-  return map;
+}
+
+// Every occurrence of a period within reach of `around`, oldest first.
+export function instances(period: Period, ctx: Context, around: Moment, reach = REACH): Instance[] {
+  const here = at(period, ctx, around);
+  if (!here) return [];
+  const walk = (by: typeof next) => {
+    const out: Instance[] = [];
+    let instance: Instance | undefined = here;
+    for (let steps = 1; (instance = step(period, ctx, instance, by, around, steps, reach)); steps++) out.push(instance);
+    return out;
+  };
+  return [...walk(previous).reverse(), here, ...walk(next)];
+}
+
+// The occurrence a note named `name` under `format` is, if any. It looks
+// outward from `around`, so notes near today are found quickest.
+export function named(period: Period, ctx: Context, format: string, around: Moment, name: string, reach = REACH) {
+  const is = (instance: Instance) => {
+    const { text, errors } = render(format, period, instance);
+    return !errors.length && text === name;
+  };
+  const here = at(period, ctx, around);
+  if (!here || is(here)) return here;
+  let ahead: Instance | undefined = here;
+  let behind: Instance | undefined = here;
+  for (let steps = 1; ahead || behind; steps++) {
+    ahead = ahead && step(period, ctx, ahead, next, around, steps, reach);
+    if (ahead && is(ahead)) return ahead;
+    behind = behind && step(period, ctx, behind, previous, around, steps, reach);
+    if (behind && is(behind)) return behind;
+  }
+  return undefined;
 }
 
 export interface Move {

@@ -1,4 +1,4 @@
-/* Tokens in a period's reference, and what each gives today. */
+/* Formats and tokens, and what each gives today. */
 .zhami-token {
   font-family: var(--font-monospace);
 }
@@ -9,7 +9,6 @@
 
 /* The list of renames. */
 .zhami-moves {
-  font-family: var(--font-monospace);
   font-size: var(--font-ui-small);
   user-select: text;
 }
