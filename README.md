@@ -4,64 +4,66 @@
 
 Zhami (ჟამი) is a literary Georgian word for time, or an era.
 
-Zhami opens the note for the current period, and creates it from a template if it doesn't exist yet.
+Zhami opens the note for this week, this season, this year, or any other period, and creates it from a template if it doesn't exist yet. Each period you turn on adds a command, like **Open this week**.
 
-Turn on the periods you use. Each one adds a command, like **Open this week**:
+| Group    | Periods                                                                       |
+| -------- | ----------------------------------------------------------------------------- |
+| Calendar | week, fortnight, month, quarter, half-year, year, decade, century, millennium |
+| Seasons  | meteorological, astronomical, the Wheel of the Year                           |
+| Work     | fashion season, fiscal year, fiscal quarter, academic year                    |
+| Japan    | the 24 sekki, the 72 kō                                                       |
+| China    | the 24 jiéqì, the zodiac year                                                 |
+| Korea    | the 24 jeolgi                                                                 |
+| India    | the six ṛtu                                                                   |
 
-| Period | Example | Spans |
-| --- | --- | --- |
-| Week | `2026-W46` | an ISO week, Monday to Sunday |
-| Fortnight | `2026-F23` | two ISO weeks, 1–2, 3–4, and so on |
-| Month | `2026-11` | |
-| Season | `Autumn 2026` | three months: winter is December to February |
-| Quarter | `2026-Q4` | |
-| Half-year | `2026-H2` | January to June, or July to December |
-| Year | `2026` | |
-| Decade | `2020s` | 2020 to 2029 |
-| Century | `21st century` | 2001 to 2100 |
-| Millennium | `3rd millennium` | 2001 to 3000 |
+Week, month, quarter and year are on by default. For daily notes, use Obsidian's core Daily notes plugin.
 
-Week, month, quarter, and year are on by default. In a year with 53 ISO weeks, the last fortnight is one week long. Winter is named after the year it starts in, and seasons flip for the southern hemisphere. For daily notes, use Obsidian's core Daily notes plugin.
+## Usage
 
-## Settings
+Open **Settings → Zhami**. Set a folder for new notes, then open a period to turn it on.
 
-- **Folder** for new notes.
+Each period's page has:
 
-Each period has its own page:
+- **Folder**, if its notes go somewhere else.
+- **Name format**, with today's note as you type.
+- **Template** for new notes.
+- **Examples**: select one to use it.
+- **Reference**: every token the period understands, and what each gives today.
+- **Rename notes**, for notes named another way.
 
-- **Command**: turns the period on.
-- **Folder**: overrides the default folder.
-- **Name format**: [Moment.js syntax](https://momentjs.com/docs/#/displaying/format/), as in Daily notes, applied to the first day of the period. It can use the variables below. A slash creates subfolders, e.g. `YYYY/[W]WW`.
-- **Template**.
+Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Daily notes do. Where moment has no token, Zhami adds one in double braces:
 
-## Variables
+| Format                    | Gives                           |
+| ------------------------- | ------------------------------- |
+| `GGGG-[W]WW`              | `2026-W46`                      |
+| `GGGG-[F]{{PP}}`          | `2026-F23`                      |
+| `{{PPPP}} {{years}}`      | `Autumn 2026`, `Winter 2026-27` |
+| `{{PPP}}YY`               | `FW26`                          |
+| `{{PPPP}} {{PPPP:kanji}}` | `Rittō 立冬`                    |
+| `{{Po}} [century]`        | `21st century`                  |
 
-Name formats and templates both understand:
+## Documentation
 
-| Variable | Gives | Example |
-| --- | --- | --- |
-| `{{n}}` | the period's number | `YYYY-[F]{{n}}` gives `2026-F23` |
-| `{{nth}}` | the same, as an ordinal | `{{nth}} [century]` gives `21st century` |
-| `{{season}}` | the season | `{{season}} YYYY` gives `Autumn 2026` |
+- [Periods](docs/periods.md): every period, its formats and tokens, and sources.
+- [Name formats](docs/formats.md): moment, Zhami's tokens, years and folders.
+- [Templates](docs/templates.md): variables for new notes.
+- [Rename notes](docs/renaming.md): renaming notes to a new format.
 
-In a name format, keep them outside square brackets.
+## Accuracy
 
-Templates also support the variables of the core Templates plugin, `{{title}}`, `{{date}}`, `{{time}}`, and `{{date:FORMAT}}`, plus two more:
-
-- `{{start}}`: the first day of the period.
-- `{{end}}`: the last day of the period.
-
-Both accept a format, e.g. `{{end:MMMM D}}`, and default to `YYYY-MM-DD`. For example, `due: {{end}}` in a quarter template gives a note due on the last day of the quarter.
+Seasons, sekki, kō, jiéqì, jeolgi and ṛtu start when the sun reaches a longitude. Zhami computes it with VSOP87 and Jean Meeus's methods. From 1901 to 2100, its dates match all 4,800 solar terms in the Hong Kong Observatory's tables, except six that fall within 15 minutes of midnight, where ephemerides disagree on the day. Zodiac years use the Observatory's Lunar New Year dates, so they cover 1901 to 2099.
 
 ## Development
 
 ```bash
 bun install
 bun run check   # type check
+bun run test    # tests
 bun run build   # build main.js
+bun run docs    # write docs/periods.md
 VAULT=/path/to/vault bun run dev   # build and copy into a vault
 ```
 
 ## Credits
 
-The icon is ჟ from [Noto Sans Georgian](https://fonts.google.com/noto/specimen/Noto+Sans+Georgian), under the SIL Open Font License 1.1.
+The icon is ჟ from [Noto Sans Georgian](https://fonts.google.com/noto/specimen/Noto+Sans+Georgian), under the SIL Open Font License 1.1. VSOP87 coefficients via [astronomia](https://github.com/commenthol/astronomia) (MIT). Names and dates come from the sources listed in [Periods](docs/periods.md).
