@@ -177,6 +177,14 @@ describe("next and previous", () => {
     }
   });
 
+  test("the sun's periods work in the years before 100", () => {
+    const at = period("sekki").at(moment("0050-06-30", "YYYY-MM-DD"), north);
+    // Geshi, the June solstice, starts June 21 or 22 in Japan, in the
+    // proleptic Gregorian calendar moment uses.
+    expect([at.labels?.PPPP, at.start.format("YYYY-MM")]).toEqual(["Geshi", "0050-06"]);
+    expect(at.start.date()).toBeGreaterThanOrEqual(19);
+  });
+
   test("a note's name tells which occurrence it is", () => {
     const today = moment("2026-11-13", "YYYY-MM-DD");
     const week = (name: string) => named(period("week"), north, "GGGG-[W]WW", today, name);

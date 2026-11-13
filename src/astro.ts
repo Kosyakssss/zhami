@@ -96,19 +96,27 @@ export function sunReaches(longitude: number, near: number) {
   return (jde - dt - 2440587.5) * DAY;
 }
 
+// Unix milliseconds at midnight UTC on a date. Date.UTC alone reads the
+// years 0 to 99 as 1900 to 1999.
+function utc(year: number, month: number, day: number) {
+  const date = new Date(Date.UTC(2000, month, day));
+  date.setUTCFullYear(year);
+  return date.getTime();
+}
+
 // Every instant in a calendar year when the sun reaches a multiple of `step`
 // degrees past `offset`, with its index counted from `offset`.
 export function sunSteps(year: number, step: number, offset: number) {
   const out: { at: number; index: number }[] = [];
   const count = 360 / step;
   // The March equinox, near March 20, is longitude 0.
-  const equinox = Date.UTC(year, 2, 20);
+  const equinox = utc(year, 2, 20);
   for (let index = 0; index < count; index++) {
     const longitude = (offset + index * step) % 360;
     // Days from the March equinox to this longitude, wrapped into this year.
     let days = (longitude / 360) * 365.2422;
     let near = equinox + days * DAY;
-    if (near >= Date.UTC(year + 1, 0, 1)) near -= 365.2422 * DAY;
+    if (near >= utc(year + 1, 0, 1)) near -= 365.2422 * DAY;
     out.push({ at: sunReaches(longitude, near), index });
   }
   return out.sort((a, b) => a.at - b.at);
