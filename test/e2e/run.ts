@@ -80,7 +80,7 @@ function js<T = unknown>(body: string): T {
 // be stale when Obsidian is in the background; DevTools' paints a frame.
 function shot(name: string) {
   const out = ob("dev:cdp", "method=Page.captureScreenshot", 'params={"format":"png"}');
-  writeFileSync(join(SHOTS, `${name}.png`), Buffer.from(JSON.parse(out).data, "base64"));
+  writeFileSync(join(SHOTS, `${name}.png`), new Uint8Array(Buffer.from(JSON.parse(out).data, "base64")));
 }
 
 const sleep = (ms: number) => Bun.sleep(ms);
