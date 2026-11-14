@@ -10,7 +10,7 @@ It also works for notes you made by hand, before Zhami or without it.
 2. **Rename to** is the format they should have. It starts as the current format.
 3. **In folder** is where to look, including subfolders.
 
-The page lists every note that matches, with its new name, before anything changes. Select **Rename** to rename them.
+The page counts the notes that match and lists each one that gets a new name, before anything changes. Select **Rename** to rename them. Notes that already have their new name, as when **Find** and **Rename to** are the same, are counted and left as they are.
 
 It looks through every occurrence of the period, from the year 1 to 9999, starting at today and working outward, so notes from recent years show up first. A bar shows how far it has got. It stops early once every note in the folder has matched. Through every week takes about 10 seconds, and every kō, at 72 a year, about 25. You can rename what it has found at any time.
 
