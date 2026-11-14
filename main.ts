@@ -255,7 +255,7 @@ const STEPS = [
   { id: "previous-", word: "previous", by: -1 },
 ] as const;
 
-const DOCS = "https://github.com/Kosyakssss/zhami/blob/main/docs";
+const DOCS = "https://tangled.org/kote-pdj.bsky.social/zhami/blob/main/docs";
 // GitHub's heading anchors: lowercase, punctuation dropped, spaces to dashes.
 const anchor = (period: Period) =>
   period.name
@@ -264,6 +264,10 @@ const anchor = (period: Period) =>
     .replace(/\s/g, "-");
 
 const MMDD = (value: string) => (/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value) && value !== "02-29" ? undefined : "Use MM-DD, like 04-01");
+
+// Settings as nested objects, to follow a control's key into them.
+type Tree = Record<string, unknown>;
+const branch = (value: unknown) => (typeof value === "object" && value !== null ? (value as Tree) : undefined);
 
 // Settings are declarative: the default folder and hemisphere, then one page
 // per period under its group's heading. Control keys are paths into the
@@ -279,13 +283,14 @@ class ZhamiSettings extends PluginSettingTab {
   }
 
   getControlValue(key: string): unknown {
-    return key.split(".").reduce<any>((value, part) => value?.[part], this.plugin.settings);
+    return key.split(".").reduce<unknown>((value, part) => branch(value)?.[part], this.plugin.settings);
   }
 
   async setControlValue(key: string, value: unknown) {
     const parts = key.split(".");
     const last = parts.pop()!;
-    const target = parts.reduce<any>((object, part) => (object[part] ??= {}), this.plugin.settings);
+    let target = this.plugin.settings as unknown as Tree;
+    for (const part of parts) target = target[part] = branch(target[part]) ?? {};
     target[last] = typeof value === "string" ? value.trim() : value;
     await this.plugin.saveSettings();
 
@@ -382,21 +387,23 @@ class ZhamiSettings extends PluginSettingTab {
           {
             name: "Name format",
             render: (setting) => {
+              const today = createSpan();
               const preview = createSpan({ cls: "u-pop" });
               const problem = createDiv({ cls: "mod-warning" });
               const update = (format: string) => {
                 const instance = now();
                 if (!instance) {
-                  preview.setText("none, as today is outside this period's range");
+                  today.setText("Today is outside this period's range.");
                   return;
                 }
                 const { text, errors } = render(format || period.format, period, instance);
                 preview.setText(text);
+                today.replaceChildren("Today's note: ", preview, ".");
                 problem.setText(errors.join(". "));
               };
               setting.setDesc(
                 createFragment((f) => {
-                  f.append("Today's note: ", preview, ". Existing notes keep their names until you rename them.");
+                  f.append(today, " Existing notes keep their names until you rename them.");
                   f.append(problem);
                 }),
               );
@@ -465,7 +472,7 @@ class ZhamiSettings extends PluginSettingTab {
           })),
           {
             name: "Documentation",
-            desc: "Every period's formats, tokens and sources, on GitHub.",
+            desc: "Every period's formats, tokens and sources.",
             action: () => window.open(`${DOCS}/periods.md#${anchor(period)}`),
           },
         ],
@@ -517,7 +524,7 @@ class RenamePage extends SettingPage {
 
     new Setting(containerEl)
       .setName("Find")
-      .setDesc("The names your notes have now. * matches any text.")
+      .setDesc("The names your notes have now, where * matches any text.")
       .addText((text) =>
         text.setValue(state.find).onChange((value) => {
           state.find = value;
@@ -526,7 +533,7 @@ class RenamePage extends SettingPage {
       );
     new Setting(containerEl)
       .setName("Rename to")
-      .setDesc("Each * puts back what its * in Find matched.")
+      .setDesc("Each * puts back what a * above matched, in order.")
       .addText((text) =>
         text.setValue(state.to).onChange((value) => {
           state.to = value;
@@ -601,7 +608,7 @@ class RenamePage extends SettingPage {
     });
     const links = new Setting(el)
       .setName("Update links")
-      .setDesc("Automatically update internal links is off, in Files and links, so Obsidian would ask about links for every note.")
+      .setDesc("Obsidian is set to ask before it updates links, so it would ask once for each note.")
       .addButton((b) =>
         b.setButtonText("Turn on").onClick(() => {
           vault.setConfig("alwaysUpdateLinks", true);

@@ -1,5 +1,5 @@
 import type { Moment } from "moment";
-import type { Context, Instance, Period } from "./periods";
+import type { Instance, Period } from "./periods";
 
 // Zhami's tokens sit in double braces, so moment never reads them: {{P}} is
 // a period's number, {{PPPP}} its name. Everything outside the braces is
