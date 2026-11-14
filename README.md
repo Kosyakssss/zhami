@@ -18,20 +18,31 @@ Zhami opens the note for this week, this season, this year, or any other period,
 
 Week, month, quarter and year are on by default. For daily notes, use Obsidian's core Daily notes plugin.
 
-To link to a period's note as you write, type `@` and a phrase: `@next week` gives `[[2026-W47]]`, `@this sekki` gives `[[Rittō 2026]]`, and `@last month` gives `[[2026-10]]`. The list appears once you type the space after `this`, `next` or `last`, so `@today` stays with plugins like [Aloha](https://github.com/kepano/aloha). With [Natural Language Dates](https://github.com/argenos/nldates-obsidian) on, `@` stays with it; use **Insert link to a period note** instead, which works anywhere.
+## Installation
+
+1. Open **Settings → Community plugins**.
+2. Select **Browse**, then search for **Zhami**.
+3. Select **Install**, then **Enable**.
+
+Requires Obsidian 1.13.1 or later, on desktop or mobile.
+
+To install manually, download `main.js`, `manifest.json` and `styles.css` from the latest release into `<vault>/.obsidian/plugins/zhami/`.
 
 ## Usage
 
-Open **Settings → Zhami**. Set a folder for new notes, then open a period to turn it on.
-
-Each period's page has:
+Open **Settings → Zhami** and set a folder for new notes. Then open a period and turn on **Commands**. Its page also has:
 
 - **Folder**, if its notes go somewhere else.
+- Start dates, for periods that start when you say, like the fiscal year.
 - **Name format**, with today's note as you type.
 - **Template** for new notes.
 - **Examples**, each with a button to use it.
 - **Reference**: every token the period understands, and what each gives today.
 - **Rename notes**, for notes named another way.
+
+To link to a period's note as you write, type `@` and a phrase: `@next week` gives `[[2026-W47]]`, `@this sekki` gives `[[Rittō 2026]]`, and `@last month` gives `[[2026-10]]`. The list appears once you type the space after `this`, `next` or `last`, so `@today` stays with plugins like [Aloha](https://github.com/kepano/aloha). With [Natural Language Dates](https://github.com/argenos/nldates-obsidian) on, `@` stays with it; use **Insert link to a period note** instead, which works anywhere.
+
+## Name formats
 
 Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Daily notes do. Where moment has no token, Zhami adds one in double braces. On November 13, 2026:
 
@@ -55,11 +66,12 @@ Name formats use [moment](https://momentjs.com/docs/#/displaying/format/), as Da
 
 Seasons, sekki, kō, jiéqì, jeolgi and ṛtu start when the sun reaches a longitude. Zhami computes it with VSOP87 and Jean Meeus's methods. From 1901 to 2100, its dates match all 4,800 solar terms in the Hong Kong Observatory's tables, except six that fall within 15 minutes of midnight, where ephemerides disagree on the day. Zodiac years use the Observatory's Lunar New Year dates, so they cover 1901 to 2099.
 
-## Development
+## Develop
 
 ```bash
 bun install
 bun run check   # type check
+bun run lint    # Obsidian's review rules
 bun run test    # tests
 bun run e2e     # check in real Obsidian, with test/zhami-vault open
 bun run build   # build main.js
@@ -70,3 +82,7 @@ VAULT=/path/to/vault bun run dev   # build and copy into a vault
 ## Credits
 
 The icon is ჟ from [Noto Sans Georgian](https://fonts.google.com/noto/specimen/Noto+Sans+Georgian), under the SIL Open Font License 1.1. VSOP87 coefficients via [astronomia](https://github.com/commenthol/astronomia) (MIT). Names and dates come from the sources listed in [Periods](docs/periods.md).
+
+## License
+
+[MIT](LICENSE)
