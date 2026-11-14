@@ -1,7 +1,7 @@
 {
   "id": "zhami",
   "name": "Zhami",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.13.1",
   "description": "Open or create the note for this week, month, year, or any other period, from a template.",
   "author": "Kote",
