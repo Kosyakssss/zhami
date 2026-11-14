@@ -626,9 +626,11 @@ class RenamePage extends SettingPage {
       const error = matcher.error ?? result.error;
       const searching = !finished();
       const { moves, conflicts } = result;
+      const matched = matcher.hits.size;
+      // Notes whose new name is the one they have, as when Find and Rename to are the same.
+      const kept = matched - moves.length - conflicts.length;
       status.setName(
-        error ??
-          (moves.length ? `${notes(moves.length)} ${moves.length === 1 ? "matches" : "match"}` : searching ? "No notes match yet" : "No notes match"),
+        error ?? (matched ? `${notes(matched)} ${matched === 1 ? "matches" : "match"}` : searching ? "No notes match yet" : "No notes match"),
       );
       status.settingEl.toggleClass("mod-warning", Boolean(error));
       status.setDesc(
@@ -654,6 +656,7 @@ class RenamePage extends SettingPage {
       const list = lists.createEl("ul", { cls: "zhami-moves" });
       for (const move of moves.slice(0, 200)) list.createEl("li").createSpan({ cls: "zhami-token", text: `${move.from} → ${move.to}` });
       if (moves.length > 200) list.createEl("li", { text: `and ${moves.length - 200} more` });
+      if (kept) new Setting(lists).setName(`${notes(kept)} already ${kept === 1 ? "has its new name" : "have their new names"}`).setHeading();
       if (conflicts.length) {
         new Setting(lists).setName(`${notes(conflicts.length)} ${conflicts.length === 1 ? "is" : "are"} skipped`).setHeading();
         const skipped = lists.createEl("ul", { cls: "zhami-moves" });

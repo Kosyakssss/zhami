@@ -414,7 +414,7 @@ const renaming = js<{ rows: string[]; moves: string[] }>(`
   await settle();
   return { rows: rows().map(named), moves: [...page().querySelectorAll(".zhami-moves li")].map((li) => li.textContent) };
 `);
-check("rename: plan", renaming.rows.slice(3), ["1 note matches", "Update links", "1 note is skipped"]);
+check("rename: plan", renaming.rows.slice(3), ["2 notes match", "Update links", "1 note is skipped"]);
 check("rename: moves and clashes", renaming.moves, [
   `${old(prev2)} → ${name(week, prev2)}`,
   `${old()} → ${name(week)}: A note with this name already exists`,
@@ -423,7 +423,7 @@ shot("rename");
 check(
   "rename: turns on updating links",
   js<[unknown, string[]]>(`row("Update links").querySelector("button").click(); await wait(300); return [app.vault.getConfig("alwaysUpdateLinks"), rows().map(named).slice(3)];`),
-  [true, ["1 note matches", "1 note is skipped"]],
+  [true, ["2 notes match", "1 note is skipped"]],
 );
 js(`rows()[3].querySelector("button").click(); await wait(1000); await settle(); return null;`);
 check("rename: renamed", existsSync(join(ROOT, `Calendar/${name(week, prev2)}.md`)), true);
@@ -432,7 +432,14 @@ check("rename: links follow", readFileSync(join(ROOT, "Calendar/Links.md"), "utf
 check(
   "rename: list updates",
   js<string[]>(`return rows().map(named).slice(3);`),
-  ["No notes match", "1 note is skipped"],
+  ["1 note matches", "1 note is skipped"],
+);
+// The page opens with Find and Rename to both the current format: notes
+// already named so match, and keep their names.
+check(
+  "rename: notes in the current format match",
+  js<string[]>(`await goto("Week", "Rename notes"); await settle(); return rows().map(named).slice(3);`),
+  ["2 notes match", "2 notes already have their new names"],
 );
 
 // --- Links ------------------------------------------------------------------
