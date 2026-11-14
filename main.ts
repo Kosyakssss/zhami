@@ -256,7 +256,7 @@ const STEPS = [
 ] as const;
 
 const DOCS = "https://tangled.org/kote-pdj.bsky.social/zhami/blob/main/docs";
-// GitHub's heading anchors: lowercase, punctuation dropped, spaces to dashes.
+// Tangled's heading anchors, the same as GitHub's: lowercase, punctuation dropped, spaces to dashes.
 const anchor = (period: Period) =>
   period.name
     .toLowerCase()
