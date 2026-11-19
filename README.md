@@ -24,6 +24,8 @@ Week, month, quarter and year are on by default. For daily notes, use Obsidian's
 2. Select **Browse**, then search for **Zhami**.
 3. Select **Install**, then **Enable**.
 
+Or install it from [its page in Obsidian's plugin directory](https://community.obsidian.md/plugins/zhami).
+
 Requires Obsidian 1.13.1 or later, on desktop or mobile.
 
 To install manually, download `main.js`, `manifest.json` and `styles.css` from the latest release into `<vault>/.obsidian/plugins/zhami/`.
